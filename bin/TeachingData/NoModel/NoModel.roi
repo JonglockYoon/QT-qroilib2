@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="2592" height="1944" roiwidth="1" roiheight="1" nextobjectid="1">
+ <objectgroup name="channel1" x="-1" y="-1">
+  <object id="2" name="noname1127160142" x="426" y="687" width="1372" height="87">
+   <rectangle/>
+   <param InspectType="505">
+    <param00 steptype="1" name="Low Threshold" valuetype="1" value="110" detail=""/>
+    <param01 steptype="1" name="High Threshold" valuetype="1" value="255" detail=""/>
+    <param02 steptype="1" name="Min Size Y" valuetype="1" value="5" detail=""/>
+    <param03 steptype="1" name="Max Size Y" valuetype="1" value="10000" detail=""/>
+    <param04 steptype="1" name="Noise out 1" valuetype="1" value="0" detail=""/>
+    <param05 steptype="1" name="Noise out 2" valuetype="1" value="0" detail=""/>
+    <param06 steptype="1" name="Expansion 1" valuetype="1" value="0" detail=""/>
+    <param07 steptype="1" name="Expansion 2" valuetype="1" value="0" detail=""/>
+    <param08 steptype="2" name="Noise out 1" valuetype="1" value="0" detail=""/>
+    <param09 steptype="2" name="Noise out 2" valuetype="1" value="0" detail=""/>
+    <param10 steptype="2" name="Expansion 1" valuetype="1" value="0" detail=""/>
+    <param11 steptype="2" name="Expansion 2" valuetype="1" value="0" detail=""/>
+    <param12 steptype="3" name="Size X(%)" valuetype="1" value="100" detail=""/>
+    <param13 steptype="3" name="Size Y(%)" valuetype="1" value="100" detail=""/>
+    <param14 steptype="3" name="Invert?" valuetype="4" value="0" detail="No,Yes"/>
+    <param15 steptype="3" name="Smooth Use" valuetype="4" value="0" detail="No,Yes"/>
+    <param16 steptype="3" name="Smooth method" valuetype="4" value="1" detail="BLUR,GAUSSIAN,MEDIAN,BILATERAL "/>
+    <param17 steptype="3" name="Smooth size" valuetype="1" value="7" detail=""/>
+   </param>
+  </object>
+ </objectgroup>
+</roimap>
