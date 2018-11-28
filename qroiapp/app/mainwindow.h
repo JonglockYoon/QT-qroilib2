@@ -54,7 +54,7 @@ public:
     DocumentView* currentView() const;
 
     Qroilib::RoiObject *ManualInspection(int ch);
-    void SetCameraPause(int viewNumber, int bPause);
+    void SetCameraPause(int viewNumber, bool bPause);
 
 public:
     void outWidget(QString title, cv::Mat& mat);
@@ -94,6 +94,7 @@ public  Q_SLOTS:
 
     void setGrayImage();
     void setCLAHEImage();
+    void setLabelImage();
 
     void setChannel1();
     void setChannel2();

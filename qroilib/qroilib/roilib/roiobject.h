@@ -98,7 +98,7 @@ typedef struct  _tagDetectResult
     double dValue;
     double dWidth;
     double dHeight;
-    char str[128];
+    char str[512];
     //std::string str;
     //cv::Mat img;
 

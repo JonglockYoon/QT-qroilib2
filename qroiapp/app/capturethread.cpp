@@ -59,7 +59,12 @@ void CaptureThread::run()
 bool CaptureThread::connectToCamera(int deviceNumber)
 {
     // Open camera and return result
-    return cap.open(deviceNumber);
+    bool rtn = cap.open(deviceNumber);
+    if (rtn) {
+        cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+        cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+    }
+    return rtn;
 } // connectToCamera()
 
 void CaptureThread::disconnectCamera()

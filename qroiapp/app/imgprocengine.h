@@ -104,6 +104,7 @@ public:
     int SingleROIBarCode(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect);
     int SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect);
     int SingleROIColorMatching(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect);
+    int SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect);
 
     double HistEMD(cv::Mat& hist, cv::Mat& target, int dims);
 

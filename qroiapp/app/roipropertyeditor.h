@@ -73,7 +73,6 @@ public:
     Qroilib::RoiObject *mObject; // selected roimap object;
     cv::Mat frame;
 private:
-    cv::Mat grayImg;
     QImage img;
 
     QBasicTimer m_timer;

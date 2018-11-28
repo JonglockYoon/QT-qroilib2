@@ -550,6 +550,10 @@ void ViewMainPage::updateFrame(const QImage &frame, int windowNumber)
     if (!v->document())
         return;
 
+    Controller* pController = myCamController[windowNumber];
+    if (pController && pController->captureThread->bCamPause)
+        return;
+
     v->document()->setImageInternal(frame);
     v->imageView()->updateBuffer();
 } // updateFrame()

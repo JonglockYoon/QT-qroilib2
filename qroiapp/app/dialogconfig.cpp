@@ -307,7 +307,8 @@ int DialogConfig::getAutoExposureValue(int seq)
 
 #if 1//def Q_OS_WIN
     Controller* pController = pView->myCamController[seq];
-    val = pController->captureThread->cap.get(cv::CAP_PROP_AUTO_EXPOSURE);
+    if (pController->captureThread && pController->captureThread->isCameraConnected())
+        val = pController->captureThread->cap.get(cv::CAP_PROP_AUTO_EXPOSURE);
 #else
     char video[64];
     struct v4l2_queryctrl qctrl;
@@ -356,7 +357,8 @@ int DialogConfig::getAutoFocusValue(int seq)
     theMainWindow->SetCameraPause(seq, true);
 
     Controller* pController = pView->myCamController[seq];
-    val = pController->captureThread->cap.get(cv::CAP_PROP_AUTOFOCUS);
+    if (pController->captureThread && pController->captureThread->isCameraConnected())
+        val = pController->captureThread->cap.get(cv::CAP_PROP_AUTOFOCUS);
 
     theMainWindow->SetCameraPause(seq, false);
     return val;

@@ -165,6 +165,9 @@ int CImgProcEngine::InspectOneItem(cv::Mat img, RoiObject *pData)
     case _Inspect_Color_Matching:
         SingleROIColorMatching(croppedImage, pData, rect);
         break;
+    case _Inspect_Label_Detect:
+        SingleROILabelDetect(croppedImage, pData, rect);
+        break;
     }
 
 	return 0;
@@ -1294,7 +1297,7 @@ int CImgProcEngine::SinglePattMatchShapes(cv::Mat croppedImage, RoiObject *pData
         qDebug() << "Error g2 cvSmooth()";
     }
 
-    cv::Canny(g2, g2, 100, 300, 3);
+    cv::Canny(g2, g2, 100, 300);
     if (m_bSaveEngineImg){
         SaveOutImage(g2, pData, ("265_TemplateImageCany.jpg"));
     }
@@ -1538,6 +1541,15 @@ int CImgProcEngine::SinglePattFeatureMatch(cv::Mat croppedImage, RoiObject *pDat
         str.sprintf("Searching Time=%dms", (int)(total_time*1000));
         theMainWindow->DevLogSave(str.toLatin1().data());
 
+        RotatedRect myRotatedRect = minAreaRect( Mat(corner) );
+        double myContourAngle = myRotatedRect.angle;
+        if (myRotatedRect.size.width < myRotatedRect.size.height) {
+          //myContourAngle = myContourAngle - 90;
+        }
+        qDebug() << "myContourAngle: " << myContourAngle;
+        for (int i=0; i<4; i++) {
+            qDebug() << corner[i].x << corner[i].y;
+        }
     }
 
     return 0;
@@ -2137,7 +2149,7 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
 
     NoiseOut(pData, g2, _ProcessValue2, 231);
     Expansion(pData, g2, _ProcessValue2, 232);
-    cv::Canny(g2, g2, 100, 300, 3);
+    cv::Canny(g2, g2, 100, 300);
     if (m_bSaveEngineImg){
         SaveOutImage(g2, pData, ("227_TemplateImageCany.jpg"));
     }
@@ -2201,7 +2213,7 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
 
                 NoiseOut(pData, g1, _ProcessValue2, 251);
                 Expansion(pData, g1, _ProcessValue2, 252);
-                cv::Canny(g1, g1, 100, 300, 3);
+                cv::Canny(g1, g1, 100, 300);
                 if (m_bSaveEngineImg){
                     str.sprintf(("256_SearchImageCany%d.jpg"), nLoop);
                     SaveOutImage(g1, pData, str);
@@ -2398,14 +2410,14 @@ int CImgProcEngine::AdaptiveThreshold(RoiObject *pData, cv::Mat grayImg, int nDb
     //마지막에서 두번째값은 threshold 계산 때 주변 픽셀 사용하는 크기.  3,5,7 식으로 홀수로 넣어줌
     //마지막은 Constant subtracted from mean or weighted mean. It may be negative
 
-    //if (nBlkSize == 0)
-    //	nBlkSize = 51;
     //if (C == 0)
     //	C = 11;
     if (nBlkSize > min(cx, cy) / 4)
         nBlkSize = min(cx, cy) / 4;
     if (nBlkSize % 2 == 0) // 강제로 홀수로 만든다.
         nBlkSize++;
+    if (nBlkSize < 5)
+        nBlkSize = 5;
     cv::adaptiveThreshold(grayImg, grayImg, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, nBlkSize, C);
 
     if (m_bSaveEngineImg){
@@ -2613,6 +2625,8 @@ void CImgProcEngine::SaveOutImage(cv::Mat imgOut, RoiObject *pData, QString strM
 
 int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect)
 {
+    if (pData == nullptr)
+        return -1;
     QString str;
     if (croppedImage.channels() == 3)
         cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
@@ -2648,7 +2662,9 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
         if (pParam)
             iMaxY = (int)(pParam->Value.toDouble());
     }
+    bitwise_not(croppedImage,croppedImage);
     FilterBlobBoundingBoxYLength(croppedImage, iMinY, iMaxY);
+    bitwise_not(croppedImage,croppedImage);
     if (gCfg.m_bSaveEngineImg) {
         str.sprintf(("%03d_Filter.BMP"), 205);
         SaveOutImage(croppedImage, pData, str);
@@ -2662,41 +2678,28 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
         SaveOutImage(croppedImage, pData, str);
     }
 
-    int bInvert = 0;
-    if (pData != NULL) {
-        CParam *pParam = pData->getParam(("Invert?"));
-        if (pParam)
-            bInvert = (int)pParam->Value.toDouble();
-        if (bInvert == 1)
-            cv::bitwise_not(croppedImage, croppedImage);
-        if (m_bSaveEngineImg){
-            str.sprintf(("%03d_Invert.jpg"), 211);
-            SaveOutImage(croppedImage, pData, str);
-        }
-    }
+    CParam *pParam;
     double dSizeX = 1.0, dSizeY = 1.0;
-    if (pData != NULL) {
-        CParam *pParam = pData->getParam(("Size X(%)"));
-        if (pParam)
-            dSizeX = (pParam->Value.toDouble()) / 100.0;
-        pParam = pData->getParam(("Size Y(%)"));
-        if (pParam)
-            dSizeY = (pParam->Value.toDouble()) / 100.0;
-    }
+    pParam = pData->getParam(("Size X(%)"));
+    if (pParam)
+        dSizeX = (pParam->Value.toDouble()) / 100.0;
+    pParam = pData->getParam(("Size Y(%)"));
+    if (pParam)
+        dSizeY = (pParam->Value.toDouble()) / 100.0;
 
     cv::Size sz = cv::Size(croppedImage.cols * dSizeX, croppedImage.rows * dSizeY);
-    cv::Mat tmp = cv::Mat(sz, 8, 1);
-    cv::resize(croppedImage, tmp, tmp.size(), dSizeX, dSizeY, cv::INTER_CUBIC);
+    cv::Mat MatIn = cv::Mat(sz, 8, 1);
+    cv::resize(croppedImage, MatIn, MatIn.size(), dSizeX, dSizeY, cv::INTER_CUBIC);
 
-    Smooth(pData, tmp, 220);
+    Smooth(pData, MatIn, 220);
 
     if (gCfg.m_bSaveEngineImg) {
-        str.sprintf(("%03d_cvTmp.BMP"), 300);
-        SaveOutImage(croppedImage, pData, str);
+        str.sprintf(("%03d_InputOCR.BMP"), 300);
+        SaveOutImage(MatIn, pData, str);
     }
 
     // Open input image using OpenCV
-    cv::Mat im = croppedImage;
+    cv::Mat im = MatIn;
 
     // Set image data
     tessApi->SetImage(im.data, im.cols, im.rows, 1, im.step); // BW color
@@ -2708,10 +2711,17 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
     // print recognized text
     //cout << outText << endl; // Destroy used object and release memory ocr->End();
 
+    std::string sstr = rst;
+    size_t endpos = sstr.find_last_not_of(" \t\r\n"); // rtrim
+      if(std::string::npos != endpos )
+        sstr = sstr.substr(0, endpos+1);
+    size_t startpos = sstr.find_first_not_of(" \t\r\n"); // ltrim
+      if(std::string::npos != startpos )
+        sstr = sstr.substr(startpos);
 
-    qDebug() << "OCR Text:" << rst;
+    qDebug() << "OCR Text:" << sstr.c_str();
     m_DetectResult.pt = cv::Point(0,0);
-    strcpy(m_DetectResult.str, rst);
+    strcpy(m_DetectResult.str, sstr.c_str());
     pData->m_vecDetectResult.push_back(m_DetectResult);
 
 //    CvFont font;
@@ -2721,7 +2731,7 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
 //    cvPutText(outImg, text, cvPoint(10, 10), &font, cv::Scalar(128, 128, 128));
 
     //QString str;
-    str.sprintf("OCR Text:%s", rst);
+    str.sprintf("OCR Text:%s", sstr.c_str());
     theMainWindow->DevLogSave(str.toLatin1().data());
 
     if (tessApi)
@@ -3351,5 +3361,119 @@ int CImgProcEngine::AppendOneLine(cv::Mat& mat, vector<ElemLineIt> &vecLineIt, E
     double d1 = sqrt(pow(ee.first.x - ee.second.x, 2) + pow(ee.first.y - ee.second.y, 2));
     if (d1 > 3)
         vecLineIt.push_back(ee);
+    return 0;
+}
+
+int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect)
+{
+    if (pData == nullptr)
+        return -1;
+    QString str;
+
+    if (croppedImage.channels() == 3)
+        cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
+
+    Mat src = croppedImage.clone();
+
+    int nThreshold1 = 100;
+    int nThreshold2 = 300;
+    CParam *pParam = pData->getParam(("EdgeThreshold1"));
+    if (pParam)	nThreshold1 = (int)pParam->Value.toDouble();
+    pParam = pData->getParam(("EdgeThreshold2"));
+    if (pParam)	nThreshold2 = (int)pParam->Value.toDouble();
+
+    int nGaussian = 3;
+    try {
+        cv::GaussianBlur(src, src, cv::Size(nGaussian,nGaussian), 0);
+    } catch (...) {
+        qDebug() << "Error g2 cvSmooth()";
+    }
+    Mat dst;
+    cv::Canny(src, dst, nThreshold1, nThreshold2);
+    if (m_bSaveEngineImg){
+        SaveOutImage(dst, pData, ("201_Canny.jpg"));
+    }
+
+    double dLen1 = 200;
+    double dLen2 = 500;
+    double dArea = 10000;
+    pParam = pData->getParam(("Min Len"));
+    if (pParam)	dLen1 = pParam->Value.toDouble();
+    pParam = pData->getParam(("Max Len"));
+    if (pParam)	dLen2 = pParam->Value.toDouble();
+    pParam = pData->getParam(("Area"));
+    if (pParam)	dArea = pParam->Value.toDouble();
+
+    CBlobResult blobs = CBlobResult(dst);
+    int nBlobs = blobs.GetNumBlobs();
+    for (int i=0; i<nBlobs; i++)
+    {
+        CBlob *p = blobs.GetBlob(i);
+        cv::Rect rect = p->GetBoundingBox();
+        int l1 = min(rect.width, rect.height);
+        int l2 = max(rect.width, rect.height);
+        if (l1 < dLen1 || l2 > dLen2)
+            p->ClearContours();
+    }
+    Mat bdst = cv::Mat::zeros(dst.size(), dst.type());
+    for (int i = 0; i < nBlobs; i++)
+    {
+        CBlob *p = blobs.GetBlob(i);
+        p->FillBlob(bdst, CVX_WHITE, 0, 0, true);
+    }
+    if (m_bSaveEngineImg){
+        SaveOutImage(bdst, pData, ("250_Blob.jpg"));
+    }
+
+    cv::dilate(bdst, bdst, Mat(), Point(-1,-1), 5);
+    blobs = CBlobResult(bdst);
+    nBlobs = blobs.GetNumBlobs();
+    bdst = cv::Mat::zeros(dst.size(), dst.type());
+    for (int i = 0; i < nBlobs; i++)
+    {
+        CBlob *p = blobs.GetBlob(i);
+        double area = p->Area();
+        if (area < dArea)
+            p->ClearContours();
+        p->FillBlob(bdst, CVX_WHITE, 0, 0, false);
+    }
+    if (m_bSaveEngineImg){
+        SaveOutImage(bdst, pData, ("260_Blob.jpg"));
+    }
+    cv::Mat element7(15, 15, CV_8U, cv::Scalar(1));
+    morphologyEx(bdst, bdst, MORPH_CLOSE, element7, Point(-1,-1), 1);
+    cv::Mat element11(25, 25, CV_8U, cv::Scalar(1));
+    morphologyEx(bdst, bdst, MORPH_OPEN, element11, Point(-1,-1), 1);
+    if (m_bSaveEngineImg){
+        SaveOutImage(bdst, pData, ("270_Blob.jpg"));
+    }
+
+
+    cv::GaussianBlur(bdst, bdst, cv::Size(nGaussian,nGaussian), 0);
+    vector<vector<Point>> contours;
+    findContours(bdst, contours,  cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    Mat drawImage = cv::Mat::zeros(src.size(), src.type());
+    int size = contours.size();
+    vector<vector<Point>> approx(size);
+    for (int k=0; k<size; k++)
+    {
+        Rect rect = boundingRect(contours[k]);
+        int l1 = min(rect.width, rect.height);
+        int l2 = max(rect.width, rect.height);
+        if (l1 < dLen1 || l2 > dLen2)
+            continue;
+
+        approxPolyDP(Mat(contours[k]), approx[k], arcLength(Mat(contours[k]), true)*0.04, true);
+        if (approx[k].size() == 0)
+                continue;
+
+        if (m_bSaveEngineImg)
+        {
+            cv::drawContours(drawImage, approx, k, CVX_WHITE, 1, 8);
+            str.sprintf(("301_approxPoly.jpg"));
+            SaveOutImage(drawImage, pData, str);
+        }
+    }
     return 0;
 }

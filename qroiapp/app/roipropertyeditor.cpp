@@ -44,8 +44,6 @@ extern Qroilib::ParamTable ROIDSHARED_EXPORT paramTable[];
 RoiPropertyEditor::RoiPropertyEditor(QWidget *parent, Qroilib::RoiObject *object)
     : QDialog(parent)
 {
-    grayImg = cv::Mat();
-
     if (object->mParent != nullptr) {
         parentObject = object->mParent;
     }
@@ -213,8 +211,8 @@ void RoiPropertyEditor::timerEvent(QTimerEvent *ev)
     ViewMainPage* pMainView = theMainWindow->viewMainPage();
     DocumentView* pdocview = pMainView->currentView();
 
-    pdocview->document()->setImageInternal(img);
-    pdocview->imageView()->updateBuffer();
+    //pdocview->document()->setImageInternal(img);
+    //pdocview->imageView()->updateBuffer();
 }
 
 void RoiPropertyEditor::clickClose()
@@ -337,7 +335,7 @@ void RoiPropertyEditor::clickedInspButtonSlot()
     theMainWindow->pImgProcEngine->DrawResultCrossMark(colorImg, mObject);
 
     // 결과이미지를 화면에 반영.
-    mat_to_qimage(grayImg, img);
+    mat_to_qimage(colorImg, img);
 
     if (pdocview->document()) {
         if (!img.isNull())
