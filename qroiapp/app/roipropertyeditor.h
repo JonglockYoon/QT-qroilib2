@@ -72,7 +72,6 @@ public:
     Qroilib::RoiObject roiObject;
     Qroilib::RoiObject *mObject; // selected roimap object;
     cv::Mat frame;
-    cv::Mat matImg;
 private:
     cv::Mat grayImg;
     QImage img;

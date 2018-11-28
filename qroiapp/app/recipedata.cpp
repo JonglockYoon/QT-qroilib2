@@ -264,7 +264,10 @@ bool CRecipeData::LoadRecipeData()
 
             if (ObjectGroup *objs = layer->asObjectGroup()) {
                 for (RoiObject* obj : objs->objects()) {
-                    v->undoStack()->push(new AddRoiObject(v, pobjs, obj));
+                    QRectF rect = obj->bounds();
+                    QRectF irect = QRectF(0, 0, v->image()->size().width(), v->image()->size().height());
+                    if (irect.intersects(rect))
+                        v->undoStack()->push(new AddRoiObject(v, pobjs, obj));
                 }
             }
             seq++;
@@ -278,11 +281,12 @@ void CRecipeData::SaveTemplelateImage(Qroilib::RoiObject *pRoiObject, cv::Mat im
 {
     QString strTemp;
 
+    int ch = img.channels();
     cv::Mat cloneImg = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
     if (img.channels() == 3)
         img.copyTo(cloneImg);
-    else if (img.depth() == 4) {
-        cv::cvtColor(img, cloneImg, cv::COLOR_RGBA2BGR);
+    else if (img.channels() == 4) {
+        cv::cvtColor(img, cloneImg, cv::COLOR_BGRA2BGR);
     } else
         cv::cvtColor(img, cloneImg, cv::COLOR_GRAY2BGR);
 

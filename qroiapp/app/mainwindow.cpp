@@ -492,9 +492,11 @@ void MainWindow::setGrayImage()
     qimage_to_mat(camimg, frame);
 
     Mat grayImg = cv::Mat(frame.size(), CV_8UC1);
-    if (grayImg.channels() == 3)
+    if (frame.channels() == 3)
         cv::cvtColor(frame, grayImg, cv::COLOR_BGR2GRAY);
-    else
+    else if (frame.channels() == 4) {
+        cv::cvtColor(frame, grayImg, cv::COLOR_BGRA2GRAY);
+    } else
         frame.copyTo(grayImg);
 
     QImage img;
@@ -521,13 +523,12 @@ void MainWindow::setCLAHEImage()
 
     Mat grayImg = cv::Mat(frame.size(), CV_8UC1);
     if (frame.channels() == 3)
-        cv::cvtColor(frame, grayImg, cv::COLOR_RGB2GRAY);
+        cv::cvtColor(frame, grayImg, cv::COLOR_BGR2GRAY);
     else if (frame.channels() == 4) {
-        cv::cvtColor(frame, grayImg, cv::COLOR_RGBA2GRAY);
+        cv::cvtColor(frame, grayImg, cv::COLOR_BGRA2GRAY);
     } else
         frame.copyTo(grayImg);
 
-    //Mat dst = cv::Mat(frame.size(), CV_8UC1);
     int clipLimit = 2;
     int tileGridSize = 8;
     Ptr<CLAHE> clahe = createCLAHE();
@@ -667,9 +668,9 @@ void MainWindow::setInspectAll()
         cv::Size isize = cv::Size(frame.cols, frame.rows);
         cv::Mat colorImg = cv::Mat(isize, CV_8UC3);
         if (frame.channels() == 3)
-            frame.copyTo(colorImg);
+            frame.copySize(colorImg);
         else if (frame.channels() == 4) {
-            cv::cvtColor(frame, colorImg, cv::COLOR_RGBA2BGR);
+            cv::cvtColor(frame, colorImg, cv::COLOR_BGRA2BGR);
         } else
             cv::cvtColor(frame, colorImg, cv::COLOR_GRAY2BGR);
 
@@ -848,6 +849,8 @@ void MainWindow::setReadImage()
 
             v->document()->setImageInternal(img);
             v->imageView()->updateBuffer();
+
+            setLoadRoi();
 
             v->updateLayout();
             pView->updateLayout();

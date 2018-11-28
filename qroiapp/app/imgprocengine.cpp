@@ -98,9 +98,9 @@ int CImgProcEngine::InspectOneItem(cv::Mat img, RoiObject *pData)
     if (img.channels() == 1)
         cv::cvtColor(img, colorImg, cv::COLOR_GRAY2BGR);
     else if (img.channels() == 3)
-        cv::cvtColor(img, colorImg, cv::COLOR_RGB2BGR);
+        img.copyTo(colorImg);
     else if (img.channels() == 4)
-        cv::cvtColor(img, colorImg, cv::COLOR_RGBA2BGR);
+        cv::cvtColor(img, colorImg, cv::COLOR_BGRA2BGR);
 
 //    if (m_bSaveEngineImg)
 //	{

@@ -321,20 +321,20 @@ void RoiPropertyEditor::clickedInspButtonSlot()
     qimage_to_mat(pimg, frame);
 
     cv::Size isize = cv::Size(frame.cols, frame.rows);
-    cv::Mat grayImg = cv::Mat(isize, CV_8UC1);
+    cv::Mat colorImg = cv::Mat(isize, CV_8UC3);
     if (frame.channels() == 3)
-        cv::cvtColor(frame, grayImg, cv::COLOR_RGB2GRAY);
+        frame.copyTo(colorImg);
     else if (frame.channels() == 4) {
-        cv::cvtColor(frame, grayImg, cv::COLOR_BGRA2GRAY);
+        cv::cvtColor(frame, colorImg, cv::COLOR_BGRA2BGR);
     } else
-        frame.copyTo(grayImg);
+        cv::cvtColor(frame, colorImg, cv::COLOR_GRAY2BGR);
 
 
     mObject->setBounds(parentObject->bounds()); // dialog창을 띄워놓고 ROI영역을 변경할수 있으므로..
 
     mObject->m_vecDetectResult.clear();
-    theMainWindow->pImgProcEngine->InspectOneItem(grayImg, mObject);
-    theMainWindow->pImgProcEngine->DrawResultCrossMark(grayImg, mObject);
+    theMainWindow->pImgProcEngine->InspectOneItem(colorImg, mObject);
+    theMainWindow->pImgProcEngine->DrawResultCrossMark(colorImg, mObject);
 
     // 결과이미지를 화면에 반영.
     mat_to_qimage(grayImg, img);
@@ -367,7 +367,7 @@ void RoiPropertyEditor::clickedSaveTemplateSlot()
         qimage_to_mat(img, frame);
 
         mObject->setName(editRoiName->text());
-        g_cRecipeData->SaveTemplelateImage(mObject, matImg);
+        g_cRecipeData->SaveTemplelateImage(mObject, frame);
 
         QString name = mObject->name();
         QString strTemp;

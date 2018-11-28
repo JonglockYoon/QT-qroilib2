@@ -326,9 +326,9 @@ cv::Mat ViewOutPage::getIplgray()
     cv::Size isize = cv::Size(frame.cols, frame.rows);
     cv::Mat grayImg = cv::Mat(isize, CV_8UC1);
     if (frame.channels() == 3)
-        cv::cvtColor(frame, grayImg, cv::COLOR_RGB2GRAY);
+        cv::cvtColor(frame, grayImg, cv::COLOR_BGR2GRAY);
     else if (frame.channels() == 4) {
-        cv::cvtColor(frame, grayImg, cv::COLOR_RGBA2GRAY);
+        cv::cvtColor(frame, grayImg, cv::COLOR_BGRA2GRAY);
     } else
         frame.copyTo(grayImg);
 
@@ -353,9 +353,9 @@ cv::Mat ViewOutPage::getIplcolor()
     if (frame.channels() == 1)
         cv::cvtColor(frame, colorImg, cv::COLOR_GRAY2BGR);
     else if (frame.channels() == 3)
-        frame.copyTo(colorImg);
+        frame.copyTo(grayImg);
     else if (frame.channels() == 4) {
-        cv::cvtColor(frame, colorImg, cv::COLOR_RGBA2BGR);
+        cv::cvtColor(frame, colorImg, cv::COLOR_BGRA2BGR);
 
         int step = colorImg.step;
         int width = colorImg.cols;

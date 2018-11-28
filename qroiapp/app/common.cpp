@@ -126,7 +126,7 @@ void qimage_to_mat(const QImage* image, cv::OutputArray out)
         case QImage::Format_RGB32:
         {
             Mat view(image->height(),image->width(),CV_8UC4,(void *)image->constBits(),image->bytesPerLine());
-            view.copyTo(out);
+            cvtColor(view, out, COLOR_RGB2BGR);
             break;
         }
         case QImage::Format_RGB888:
