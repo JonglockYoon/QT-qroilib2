@@ -121,7 +121,6 @@ struct MainWindow::Private
     QAction *exitAct;
     QAction *grayAct;
     QAction *claheAct;
-    QAction *labelAct;
     QAction * mDeleteAction;
     QAction *chAllAction;
     QAction *ch1Action;
@@ -197,8 +196,6 @@ struct MainWindow::Private
         connect(grayAct, SIGNAL(triggered(bool)), q, SLOT(setGrayImage()));
         claheAct = new QAction(QIcon(), tr("CLAHE ..."), q);
         connect(claheAct, SIGNAL(triggered(bool)), q, SLOT(setCLAHEImage()));
-        labelAct = new QAction(QIcon(), tr("Label ..."), q);
-        connect(labelAct, SIGNAL(triggered(bool)), q, SLOT(setLabelImage()));
 
 
         inspectAll = new QAction(QIcon(":/resources/search.png"), tr("Inspect&All ..."), q);
@@ -224,7 +221,6 @@ struct MainWindow::Private
         viewMenu = new QMenu(tr("&View"), q);
         viewMenu->addAction(grayAct);
         viewMenu->addAction(claheAct);
-        viewMenu->addAction(labelAct);
 
         channelMenu = new QMenu(tr("&Channel"), q);
         channelMenu->addAction(chAllAction);
@@ -514,78 +510,6 @@ void MainWindow::setCLAHEImage()
     v->document()->setImageInternal(img);
     v->imageView()->updateBuffer();
 
-}
-
-void MainWindow::setLabelImage()
-{
-    ViewMainPage* pView = viewMainPage();
-    if (!pView)
-        return;
-    Qroilib::DocumentView* v = currentView();
-    if (!v)
-        return;
-
-    Mat src;
-    const QImage *camimg = v->image();
-    if (camimg->isNull())
-        return;
-    qimage_to_mat(camimg, src);
-    SetCameraPause(m_iActiveView, true);
-
-
-    // Change the background from white to black, since that will help later to extract
-    // better results during the use of Distance Transform
-//    for( int x = 0; x < src.rows; x++ ) {
-//      for( int y = 0; y < src.cols; y++ ) {
-//          if ( src.at<Vec3b>(x, y) == Vec3b(255,255,255) ) {
-//            src.at<Vec3b>(x, y)[0] = 0;
-//            src.at<Vec3b>(x, y)[1] = 0;
-//            src.at<Vec3b>(x, y)[2] = 0;
-//          }
-//        }
-//    }
-
-    // 경계를 확실히 구분하기 위해 필터 사용
-    // Create a kernel that we will use for accuting/sharpening our image
-    Mat kernel = (Mat_<float>(3,3) <<
-            1,  1, 1,
-            1, -8, 1,
-            1,  1, 1); // an approximation of second derivative, a quite strong kernel
-
-    Mat imgLaplacian;
-    Mat sharp = src; // copy source image to another temporary one
-    filter2D(sharp, imgLaplacian, CV_32F, kernel); // Laplacian filter
-    src.convertTo(sharp, CV_32F);
-    Mat imgResult = sharp - imgLaplacian;
-
-    // convert back to 8bits gray scale
-    imgResult.convertTo(imgResult, CV_8UC3);
-    imgLaplacian.convertTo(imgLaplacian, CV_8UC3);
-
-    imshow( "Laplace Filtered Image", imgLaplacian );
-    imshow( "New Sharped Image", imgResult );
-
-    src = imgResult; // copy back
-
-    // Create binary image from source image
-    //cvtColor(src, bw, cv::COLOR_BGR2GRAY);
-    Mat bw = cv::Mat(src.size(), CV_8UC1);
-    if (src.channels() == 3)
-        cv::cvtColor(src, bw, cv::COLOR_BGR2GRAY);
-    else if (src.channels() == 4) {
-        cv::cvtColor(src, bw, cv::COLOR_BGRA2GRAY);
-    } else
-        src.copyTo(bw);
-
-    int clipLimit = 2;
-    int tileGridSize = 8;
-    Ptr<CLAHE> clahe = createCLAHE();
-    clahe->setClipLimit(clipLimit);
-    clahe->setTilesGridSize(cv::Size(tileGridSize,tileGridSize));
-    clahe->apply(bw, bw);
-
-    threshold(bw, bw, 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-    imshow("Binary Image", bw);
 }
 
 void MainWindow::setChannelAll()

@@ -130,8 +130,8 @@ public:
     double ThresholdOTSU(Qroilib::RoiObject *pData, cv::Mat grayImg, int nDbg = 100);
 
     int AdaptiveThreshold(Qroilib::RoiObject *pData, cv::Mat grayImg, int nDbg);
-    int NoiseOut(Qroilib::RoiObject *pData, cv::Mat grayImg, int t = -1, int nDbg = 100, int h = -1);
-    int Expansion(Qroilib::RoiObject *pData, cv::Mat grayImg, int t = -1, int nDbg = 150, int h = -1);
+    int NoiseOut(Qroilib::RoiObject *pData, cv::Mat grayImg, int t = -1, int nDbg = 100);
+    int Expansion(Qroilib::RoiObject *pData, cv::Mat grayImg, int t = -1, int nDbg = 150);
 
     void DrawResultCrossMark(cv::Mat img, Qroilib::RoiObject *pData);
 

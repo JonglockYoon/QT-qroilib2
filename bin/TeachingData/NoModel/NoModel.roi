@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="1280" height="1024" roiwidth="1" roiheight="1" nextobjectid="1">
+ <objectgroup name="channel1" x="-1" y="-1">
+  <object id="1" name="noname1129134723" x="24.3" y="24.3" width="1255.7" height="999.7">
+   <rectangle/>
+   <param InspectType="508">
+    <param00 steptype="1" name="Type" valuetype="4" value="0" detail=""/>
+    <param01 steptype="1" name="Low Threshold" valuetype="1" value="0" detail=""/>
+    <param02 steptype="1" name="High Threshold" valuetype="1" value="0" detail=""/>
+    <param03 steptype="1" name="Noise out 1" valuetype="1" value="0" detail=""/>
+    <param04 steptype="1" name="Noise out 2" valuetype="1" value="0" detail=""/>
+    <param05 steptype="1" name="EdgeThreshold1" valuetype="1" value="1" detail=""/>
+    <param06 steptype="1" name="EdgeThreshold2" valuetype="1" value="90" detail=""/>
+    <param07 steptype="2" name="Min Len" valuetype="1" value="50" detail=""/>
+    <param08 steptype="2" name="Max Len" valuetype="1" value="300" detail=""/>
+    <param09 steptype="2" name="Area" valuetype="1" value="9000" detail=""/>
+    <param10 steptype="3" name="Close" valuetype="1" value="5" detail=""/>
+    <param11 steptype="3" name="Open" valuetype="1" value="5" detail=""/>
+    <param12 steptype="3" name="Area2" valuetype="1" value="50000" detail=""/>
+   </param>
+  </object>
+ </objectgroup>
+</roimap>

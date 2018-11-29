@@ -2431,7 +2431,7 @@ int CImgProcEngine::AdaptiveThreshold(RoiObject *pData, cv::Mat grayImg, int nDb
 //
 // 모폴리지를 이용하여 잡음제거
 //
-int CImgProcEngine::NoiseOut(RoiObject *pData, Mat grayImg, int t, int nDbg, int h)
+int CImgProcEngine::NoiseOut(RoiObject *pData, Mat grayImg, int t, int nDbg)
 {
     QString str;
 
@@ -2490,9 +2490,7 @@ int CImgProcEngine::NoiseOut(RoiObject *pData, Mat grayImg, int t, int nDbg, int
     }
 
     if (m_bSaveEngineImg){
-        if (h >= 0)
-            str.sprintf(("%d_%03d_cvClose.jpg"), h, nDbg);
-        else str.sprintf(("%03d_cvClose.jpg"), nDbg);
+        str.sprintf(("%03d_cvClose.jpg"), nDbg);
         SaveOutImage(grayImg, pData, str);
     }
 
@@ -2502,9 +2500,8 @@ int CImgProcEngine::NoiseOut(RoiObject *pData, Mat grayImg, int t, int nDbg, int
 //
 // Dialate / Erode
 //
-int CImgProcEngine::Expansion(RoiObject *pData, cv::Mat grayImg, int t, int nDbg, int h)
+int CImgProcEngine::Expansion(RoiObject *pData, cv::Mat grayImg, int t, int nDbg)
 {
-    Q_UNUSED(h);
     QString str;
 
     if (t < 0)
@@ -2633,16 +2630,16 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
 
 
     tessApi = new tesseract::TessBaseAPI();
-    init_tess_failed = tessApi->Init("./tessdata", "eng");
+    init_tess_failed = tessApi->Init("./tessdata", "eng",  OEM_LSTM_ONLY);
     if (init_tess_failed) {
         qDebug() << "Could not initialize tesseract.";
         return -1;
     }
 
-    tessApi->SetVariable("tessedit_char_whitelist",
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    tessApi->SetVariable("tessedit_char_blacklist",
-        "~!@#$%^&*()_+`\\[],.;':\"?><");
+    //tessApi->SetVariable("tessedit_char_whitelist",
+    //    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    //tessApi->SetVariable("tessedit_char_blacklist",
+    //    "~!@#$%^&*()_+`\\[],.;':\"?><");
 
     // Set Page segmentation mode to PSM_AUTO (3)
     tessApi->SetPageSegMode(tesseract::PSM_AUTO);
@@ -2734,6 +2731,33 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
     str.sprintf("OCR Text:%s", sstr.c_str());
     theMainWindow->DevLogSave(str.toLatin1().data());
 
+
+    bitwise_not(im, im);
+    CBlobResult blobs;
+    blobs = CBlobResult(im);
+    int nBlobs = blobs.GetNumBlobs();
+    Mat result = cv::Mat::zeros(cv::Size(im.rows*nBlobs, im.rows), im.type());
+    int wpos = 0;
+    for (int i = 0; i < nBlobs; i++) {
+        CBlob *p = blobs.GetBlob(i);
+        cv::Rect rect = p->GetBoundingBox();
+        wpos = wpos + 12;
+        p->FillBlob(result, CVX_WHITE, p->MinX()*-1 + wpos, 0, true);
+        wpos += rect.width;
+    }
+    bitwise_not(result, result);
+    str.sprintf(("%03d_InputOCR.BMP"), 400);
+    SaveOutImage(result, pData, str);
+
+    //init_tess_failed = tessApi->Init("./tessdata", "eng",  OEM_LSTM_ONLY);
+    //tessApi->SetPageSegMode(tesseract::PSM_AUTO);
+
+    tessApi->SetImage(result.data, result.cols, result.rows, 1, result.step); // BW color
+    char* rst1 = tessApi->GetUTF8Text();
+    qDebug() << ":" << QString(rst1);
+
+
+
     if (tessApi)
         tessApi->End();
 
@@ -2785,14 +2809,27 @@ int CImgProcEngine::SingleROIBarCode(cv::Mat croppedImage, Qroilib::RoiObject *p
 
     }
 
-    cv::Mat m = croppedImage;
-
-    QImage img = MatToQImage(m);
-
     if (gCfg.m_bSaveEngineImg) {
         str.sprintf(("%03d_Input.BMP"), 210);
         SaveOutImage(croppedImage, pData, str);
     }
+
+    //cv::Size sz = cv::Size(256, 256);
+    //cv::Mat MatIn = cv::Mat(sz, 8, 1);
+    //cv::resize(croppedImage, MatIn, MatIn.size());
+    //cv::Mat m = MatIn;
+    cv::Mat m = croppedImage;
+
+
+    int nGaussian = 3;
+    try {
+        cv::GaussianBlur(m, m, cv::Size(nGaussian,nGaussian), 0);
+    } catch (...) {
+        qDebug() << "Error g2 cvSmooth()";
+    }
+
+
+    QImage img = MatToQImage(m);
 
     QString decode;
     try {
@@ -2805,10 +2842,26 @@ int CImgProcEngine::SingleROIBarCode(cv::Mat croppedImage, Qroilib::RoiObject *p
 
     str = "Barcode : " + decode;
     theMainWindow->DevLogSave(str.toLatin1().data());
+    m_DetectResult.resultType = RESULTTYPE_STRING;
     strcpy(m_DetectResult.str, str.toLatin1().data());
     pData->m_vecDetectResult.push_back(m_DetectResult);
 
     delete qz;
+
+    cv::QRCodeDetector detector;
+    vector<Point> points;
+    if (detector.detect(m, points)) {
+        polylines(m, points, true, Scalar(0, 255, 255), 2);
+        String info = detector.decode(m, points);
+        if (!info.empty()) {
+            polylines(m, points, true, Scalar(0, 0, 255), 2);
+            qDebug() << "OpenCV Barcode :" << info.c_str();
+        }
+        if (gCfg.m_bSaveEngineImg) {
+            str.sprintf(("%03d_Rst.BMP"), 310);
+            SaveOutImage(m, pData, str);
+        }
+    }
 
     return 0;
 }
@@ -3375,12 +3428,18 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
 
     Mat src = croppedImage.clone();
 
+    ThresholdRange(pData, src, 110);
+    NoiseOut(pData, src, -1, 125);
+
     int nThreshold1 = 100;
     int nThreshold2 = 300;
+    int nEdgeClose = 1;
     CParam *pParam = pData->getParam(("EdgeThreshold1"));
     if (pParam)	nThreshold1 = (int)pParam->Value.toDouble();
     pParam = pData->getParam(("EdgeThreshold2"));
     if (pParam)	nThreshold2 = (int)pParam->Value.toDouble();
+    pParam = pData->getParam(("EdgeClose"));
+    if (pParam)	nEdgeClose = (int)pParam->Value.toDouble();
 
     int nGaussian = 3;
     try {
@@ -3390,6 +3449,8 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
     }
     Mat dst;
     cv::Canny(src, dst, nThreshold1, nThreshold2);
+    cv::Mat element1(nEdgeClose, nEdgeClose, CV_8U, cv::Scalar(1));
+    morphologyEx(src, src, MORPH_CLOSE, element1, Point(-1,-1), 1);
     if (m_bSaveEngineImg){
         SaveOutImage(dst, pData, ("201_Canny.jpg"));
     }
@@ -3419,13 +3480,16 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
     for (int i = 0; i < nBlobs; i++)
     {
         CBlob *p = blobs.GetBlob(i);
-        p->FillBlob(bdst, CVX_WHITE, 0, 0, true);
+        double area = p->Area();
+        if (area > dArea)
+            p->ClearContours();
+        p->FillBlob(bdst, CVX_WHITE, 0, 0, false);
     }
     if (m_bSaveEngineImg){
         SaveOutImage(bdst, pData, ("250_Blob.jpg"));
     }
 
-    cv::dilate(bdst, bdst, Mat(), Point(-1,-1), 5);
+    //cv::dilate(bdst, bdst, Mat(), Point(-1,-1), 5);
     blobs = CBlobResult(bdst);
     nBlobs = blobs.GetNumBlobs();
     bdst = cv::Mat::zeros(dst.size(), dst.type());
@@ -3440,13 +3504,22 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
     if (m_bSaveEngineImg){
         SaveOutImage(bdst, pData, ("260_Blob.jpg"));
     }
-    cv::Mat element7(15, 15, CV_8U, cv::Scalar(1));
+
+    int e1 = 15;
+    int e2 = 25;
+    pParam = pData->getParam(("Close"));
+    if (pParam)	e1 = (int)pParam->Value.toDouble();
+    pParam = pData->getParam(("Open"));
+    if (pParam)	e2 = (int)pParam->Value.toDouble();
+
+    cv::Mat element7(e1, e1, CV_8U, cv::Scalar(1));
     morphologyEx(bdst, bdst, MORPH_CLOSE, element7, Point(-1,-1), 1);
-    cv::Mat element11(25, 25, CV_8U, cv::Scalar(1));
+    cv::Mat element11(e2, e2, CV_8U, cv::Scalar(1));
     morphologyEx(bdst, bdst, MORPH_OPEN, element11, Point(-1,-1), 1);
     if (m_bSaveEngineImg){
         SaveOutImage(bdst, pData, ("270_Blob.jpg"));
     }
+    Mat src2 = bdst.clone();
 
 
     cv::GaussianBlur(bdst, bdst, cv::Size(nGaussian,nGaussian), 0);
@@ -3468,12 +3541,58 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
         if (approx[k].size() == 0)
                 continue;
 
-        if (m_bSaveEngineImg)
+        int size = approx[k].size();
+        vector<int> angle;
+        for (int a = 0; a < size; a++) {
+            int ang = GetAngleABC(approx[k][a], approx[k][(a + 1) % size], approx[k][(a + 2)%size]);
+            angle.push_back(ang);
+        }
+
+        std::sort(angle.begin(), angle.end());
+        //int minAngle = angle.front();
+        int maxAngle = angle.back();
+        if (size == 4 && maxAngle < 120)
         {
-            cv::drawContours(drawImage, approx, k, CVX_WHITE, 1, 8);
+            cv::drawContours(drawImage, approx, k, CVX_WHITE, 3, 8);
             str.sprintf(("301_approxPoly.jpg"));
             SaveOutImage(drawImage, pData, str);
         }
     }
+
+
+    croppedImage.copyTo(src);
+
+    ThresholdRange(pData, src, 110);
+    NoiseOut(pData, src, -1, 125);
+
+    cv::Mat element15(20, 20, CV_8U, cv::Scalar(1));
+    morphologyEx(src, src, MORPH_OPEN, element15, Point(-1,-1), 1);
+    if (m_bSaveEngineImg){
+        SaveOutImage(src, pData, ("501_Blob.jpg"));
+    }
+
+    // Circl find
+
+    double dArea2 = 10000;
+    pParam = pData->getParam(("Area2"));
+    if (pParam)	dArea2 = pParam->Value.toDouble();
+
+    blobs = CBlobResult(src);
+    nBlobs = blobs.GetNumBlobs();
+    bdst = cv::Mat::zeros(dst.size(), dst.type());
+    for (int i = 0; i < nBlobs; i++)
+    {
+        CBlob *p = blobs.GetBlob(i);
+        double area = p->Area();
+        if (area < 1000 || area > dArea2)
+            p->ClearContours();
+        p->FillBlob(bdst, CVX_WHITE, 0, 0, false);
+    }
+    bitwise_or(bdst, src2, bdst);
+    if (m_bSaveEngineImg){
+        SaveOutImage(bdst, pData, ("511_Blob.jpg"));
+    }
+
+
     return 0;
 }

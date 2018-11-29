@@ -136,7 +136,7 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Teseract, CParam(_ProcessValue3, ("Size X(%)"), _IntValue, ("100")),
     _Inspect_Teseract, CParam(_ProcessValue3, ("Size Y(%)"), _IntValue, ("100")),
     //_Inspect_Teseract, CParam(_ProcessValue3, ("Invert?"), _ComboValue, ("0"), ("No,Yes")),
-    _Inspect_Teseract, CParam(_ProcessValue3, ("Smooth Use"), _ComboValue, ("0"), ("No,Yes")),
+    _Inspect_Teseract, CParam(_ProcessValue3, ("Smooth Use"), _ComboValue, ("1"), ("No,Yes")),
     _Inspect_Teseract, CParam(_ProcessValue3, ("Smooth method"), _ComboValue, ("1"), ("BLUR,GAUSSIAN,MEDIAN,BILATERAL ")),
     _Inspect_Teseract, CParam(_ProcessValue3, ("Smooth size"), _IntValue, ("7")),
 
@@ -150,11 +150,19 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_BarCode, CParam(_ProcessValue3, ("Area"), _IntValue, ("50")),
 
     _Inspect_Label_Detect, CParam(_ProcessValue1, ("Type"), _ComboValue, ("Multiformat")),
+    _Inspect_Label_Detect, CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("0")),
+    _Inspect_Label_Detect, CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("0")),
+    _Inspect_Label_Detect, CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("10")),
+    _Inspect_Label_Detect, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("0")),
     _Inspect_Label_Detect, CParam(_ProcessValue1, ("EdgeThreshold1"), _IntValue, ("1")),
     _Inspect_Label_Detect, CParam(_ProcessValue1, ("EdgeThreshold2"), _IntValue, ("60")),
-    _Inspect_Label_Detect, CParam(_ProcessValue2, ("Min Len"), _IntValue, ("200")),
+    _Inspect_Label_Detect, CParam(_ProcessValue1, ("EdgeClose"), _IntValue, ("1")),
+    _Inspect_Label_Detect, CParam(_ProcessValue2, ("Min Len"), _IntValue, ("100")),
     _Inspect_Label_Detect, CParam(_ProcessValue2, ("Max Len"), _IntValue, ("500")),
-    _Inspect_Label_Detect, CParam(_ProcessValue2, ("Area"), _IntValue, ("10000")),
+    _Inspect_Label_Detect, CParam(_ProcessValue2, ("Area"), _IntValue, ("9000")),
+    _Inspect_Label_Detect, CParam(_ProcessValue3, ("Close"), _IntValue, ("15")),
+    _Inspect_Label_Detect, CParam(_ProcessValue3, ("Open"), _IntValue, ("25")),
+    _Inspect_Label_Detect, CParam(_ProcessValue3, ("Area2"), _IntValue, ("50000")),
 
     _Inspect_Point_Start,   CParam(_ProcessValue1, (""), _IntValue, ("0")), // do not delete.
     _Inspect_Point_Coordnation,  CParam(_ProcessValue1, ("Mark color"), _IntValue, ("128")), // not yet implement.

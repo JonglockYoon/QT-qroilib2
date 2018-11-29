@@ -94,7 +94,6 @@ public  Q_SLOTS:
 
     void setGrayImage();
     void setCLAHEImage();
-    void setLabelImage();
 
     void setChannel1();
     void setChannel2();
