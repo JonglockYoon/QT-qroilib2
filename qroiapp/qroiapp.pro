@@ -61,6 +61,7 @@ LIBS += -lopencv_videoio
 LIBS += -lopencv_imgcodecs
 LIBS += -lopencv_ml
 LIBS += -lopencv_features2d
+LIBS += -lopencv_objdetect
 LIBS += -lopencv_world
 LIBS += -lgstreamer-1.0
 LIBS += -lgobject-2.0
@@ -72,7 +73,7 @@ LIBS += -ltesseract
 LIBS += -llept
 LIBS += -lQZXing
 
-INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /usr/local/include/opencv4 /usr/local/include
 TARGET = ../bin/qroiapp
 }
 

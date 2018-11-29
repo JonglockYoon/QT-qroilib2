@@ -378,7 +378,7 @@ void DialogConfig::SetData()
             sprintf(tty0tty, "/dev/tnt%d", i);
             int fd = ::open(tty0tty,O_RDWR);
             if (fd != -1) {
-                List1 << tty0tty;
+                //List1 << tty0tty;
                 ::close(fd);
             }
         }

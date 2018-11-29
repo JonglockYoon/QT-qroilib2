@@ -22,6 +22,7 @@
 #include "mainwindow.h"
 #include "mattoqimage.h"
 #include "opencv2/ximgproc.hpp"
+#include "opencv2/objdetect.hpp"
 
 #include "QZXing.h"
 #include <zxing/NotFoundException.h>
@@ -1389,9 +1390,9 @@ int CImgProcEngine::OneMatchShapes(vector<vector<Point> >& contours, vector<vect
     }
 
     double matching = cv::matchShapes(contours[seq], templateseq[0], cv::CONTOURS_MATCH_I1, 0); // 작은 값 일수록 두 이미지의 형상이 가까운 (0은 같은 모양)라는 것이된다.
-    //double matching = cvMatchShapes(contours, templateseq, CV_CONTOURS_MATCH_I1);
-    //double matching2 = cvMatchShapes(searchSeq, templateSeq, CV_CONTOURS_MATCH_I2);
-    //double matching3 = cvMatchShapes(searchSeq, templateSeq, CV_CONTOURS_MATCH_I3);
+    //double matching = cvMatchShapes(contours, templateseq, cv::CONTOURS_MATCH_I1);
+    //double matching2 = cvMatchShapes(searchSeq, templateSeq, cv::CONTOURS_MATCH_I2);
+    //double matching3 = cvMatchShapes(searchSeq, templateSeq, cv::CONTOURS_MATCH_I3);
     //qDebug() << "matching" << matching << matching2 << matching3;
     double dMatchShapes = (1.0 - matching) * 100.0;
     if (matching >= 0 && matching <= (1.0 - dMatchShapesingRate))
