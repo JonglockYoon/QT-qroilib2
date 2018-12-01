@@ -45,8 +45,8 @@ Qroilib::ParamTable paramTable[] = {
 
     _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("0")),
     _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("100")),
-    _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다.
+    _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),
     _Inspect_Patt_MatchShapes,  CParam(_ProcessValue1, ("Shape matching rate"), _DoubleValue, ("85")),
     //_Inspect_Patt_MatchShapes,  CParam(_PriorityValue, ("Priority"), _IntValue, ("5")),
 
@@ -55,8 +55,8 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Color_Matching,  CParam(_ProcessValue1, ("sbins"), _IntValue, ("32")),
     _Inspect_Color_Matching,  CParam(_ProcessValue2, ("Low Threshold"), _IntValue, ("35")),
     _Inspect_Color_Matching,  CParam(_ProcessValue2, ("High Threshold"), _IntValue, ("255")),
-    _Inspect_Color_Matching,  CParam(_ProcessValue3, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_Color_Matching,  CParam(_ProcessValue3, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다.
+    _Inspect_Color_Matching,  CParam(_ProcessValue3, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_Color_Matching,  CParam(_ProcessValue3, ("Noise out 2"), _IntValue, ("-1")),
     _Inspect_Color_Matching,  CParam(_ProcessValue3, ("Area"), _IntValue, ("0")),
     _Inspect_Color_Matching,  CParam(_ProcessValue3, ("Matching Result"), _ComboValue, ("0"), ("TopOne,All")),
 
@@ -73,8 +73,8 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Polarity"), _ComboValue, ("0"), ("White2Black, Black2White")),
     _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("200")),
     _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("255")),
-    _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("-2")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("2")),	// 1 : Close - White blob 들을 묶는다.
+    _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("-2")),
+    _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("2")),
     _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Ramp width"), _IntValue, ("6")),
     _Inspect_Roi_MeasureAlign,  CParam(_ProcessValue1, ("Detect method"), _ComboValue, ("0"), ("Average, First")),
     _Inspect_Roi_MeasureAlign,  CParam(_PriorityValue, ("Priority"), _IntValue, ("5")),
@@ -85,8 +85,8 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("255")),
     _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Large Blob?"), _ComboValue, ("0"), ("No,Yes")),
     _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Invert?"), _ComboValue, ("0"), ("No,Yes")),
-    _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("3")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("0")),	// 1 : Close - White blob 들을 묶는다.
+    _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("3")),
+    _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("0")),
     _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Expansion 1"), _IntValue, ("0")),	// -1 : Erode - 침식연산
     _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Expansion 2"), _IntValue, ("0")),	// 1 : Dilate - 팽창연산
     _Inspect_Roi_SubpixelEdgeWithThreshold,  CParam(_ProcessValue1, ("Ramp width"), _IntValue, ("6")),
@@ -99,10 +99,10 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("0")),
     _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("150")),
     _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("Invert?"), _ComboValue, ("0"), ("No,Yes")),
-    _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다.침식연산
-    _Inspect_Roi_CenterOfPlusMark,  CParam(_PostProcessValue1, ("Expansion 1"), _IntValue, ("3")),	// -1 : Erode -
-    _Inspect_Roi_CenterOfPlusMark,  CParam(_PostProcessValue1, ("Expansion 2"), _IntValue, ("0")),	// 1 : Dilate - 팽창연산
+    _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_Roi_CenterOfPlusMark,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),
+    _Inspect_Roi_CenterOfPlusMark,  CParam(_PostProcessValue1, ("Expansion 1"), _IntValue, ("3")),
+    _Inspect_Roi_CenterOfPlusMark,  CParam(_PostProcessValue1, ("Expansion 2"), _IntValue, ("0")),
     _Inspect_Roi_CenterOfPlusMark,  CParam(_DecideValue, ("Minimum circle radius"), _DoubleValue, ("30")),
     _Inspect_Roi_CenterOfPlusMark,  CParam(_DecideValue, ("Maximum circle radius"), _DoubleValue, ("70")),
     _Inspect_Roi_CenterOfPlusMark,  CParam(_PriorityValue, ("Priority"), _IntValue, ("10")),
@@ -110,10 +110,10 @@ Qroilib::ParamTable paramTable[] = {
 
     _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("150")),
     _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("255")),
-    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다.
-    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Expansion 1"), _IntValue, ("0")),	// -1 : Erode - 침식연산
-    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Expansion 2"), _IntValue, ("0")),	// 1 : Dilate - 팽창연산
+    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),
+    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Expansion 1"), _IntValue, ("0")),
+    _Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Expansion 2"), _IntValue, ("0")),
     _Inspect_Roi_Corner,  CParam(_ProcessValue1,  ("Corner"), _ComboValue, ("0"), ("UpperLeft,UpperRight,BottomLeft,BottomRight")),
     //_Inspect_Roi_Corner,  CParam(_ProcessValue1, ("Method"), _ComboValue, ("1"), ("Corner,Line")),
     _Inspect_Roi_Corner,  CParam(_PostProcessValue1,  ("Expansion 1"), _IntValue, ("0")),	// -1 : Erode - 침식연산
@@ -125,14 +125,14 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Teseract, CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("255")),
     //_Inspect_Teseract, CParam(_ProcessValue1, ("Min Size Y"), _IntValue, ("100")),
     _Inspect_Teseract, CParam(_ProcessValue1, ("Max Size Y"), _IntValue, ("150")),
-    _Inspect_Teseract, CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다.
-    _Inspect_Teseract, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다.
-    _Inspect_Teseract, CParam(_ProcessValue1, ("Expansion 1"), _IntValue, ("0")),	// -1 : Erode -
-    _Inspect_Teseract, CParam(_ProcessValue1, ("Expansion 2"), _IntValue, ("0")),	// 1 : Dilate - 팽창연산
-    _Inspect_Teseract, CParam(_ProcessValue2, ("Noise out 1"), _IntValue, ("0")),	// -1 : Open - 작은 White blob 들을 없앤다.
-    _Inspect_Teseract, CParam(_ProcessValue2, ("Noise out 2"), _IntValue, ("0")),	// 1 : Close - White blob 들을 묶는다.
-    _Inspect_Teseract, CParam(_ProcessValue2, ("Expansion 1"), _IntValue, ("0")),	// -1 : Erode -
-    _Inspect_Teseract, CParam(_ProcessValue2, ("Expansion 2"), _IntValue, ("0")),	// 1 : Dilate - 팽창연산
+    _Inspect_Teseract, CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_Teseract, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),
+    _Inspect_Teseract, CParam(_ProcessValue1, ("Expansion 1"), _IntValue, ("0")),
+    _Inspect_Teseract, CParam(_ProcessValue1, ("Expansion 2"), _IntValue, ("0")),
+    _Inspect_Teseract, CParam(_ProcessValue2, ("Noise out 1"), _IntValue, ("0")),
+    _Inspect_Teseract, CParam(_ProcessValue2, ("Noise out 2"), _IntValue, ("0")),
+    _Inspect_Teseract, CParam(_ProcessValue2, ("Expansion 1"), _IntValue, ("0")),
+    _Inspect_Teseract, CParam(_ProcessValue2, ("Expansion 2"), _IntValue, ("0")),
     _Inspect_Teseract, CParam(_ProcessValue3, ("Size X(%)"), _IntValue, ("100")),
     _Inspect_Teseract, CParam(_ProcessValue3, ("Size Y(%)"), _IntValue, ("100")),
     //_Inspect_Teseract, CParam(_ProcessValue3, ("Invert?"), _ComboValue, ("0"), ("No,Yes")),
@@ -140,13 +140,13 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Teseract, CParam(_ProcessValue3, ("Smooth method"), _ComboValue, ("1"), ("BLUR,GAUSSIAN,MEDIAN,BILATERAL ")),
     _Inspect_Teseract, CParam(_ProcessValue3, ("Smooth size"), _IntValue, ("7")),
 
-    _Inspect_BarCode, CParam(_ProcessValue1, ("Type"), _ComboValue, ("Multiformat")),
+    _Inspect_BarCode, CParam(_ProcessValue1, ("Decoder"), _ComboValue, ("0"), ("ZXIng,QRCodeDetector")),
     _Inspect_BarCode, CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("0")),
     _Inspect_BarCode, CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("0")),
     _Inspect_BarCode, CParam(_ProcessValue2, ("BlockSize"), _IntValue, ("11")),
     _Inspect_BarCode, CParam(_ProcessValue2, ("C"), _IntValue, ("2")),
-    _Inspect_BarCode, CParam(_ProcessValue3, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다
-    _Inspect_BarCode, CParam(_ProcessValue3, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다.
+    _Inspect_BarCode, CParam(_ProcessValue3, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_BarCode, CParam(_ProcessValue3, ("Noise out 2"), _IntValue, ("-1")),
     _Inspect_BarCode, CParam(_ProcessValue3, ("Area"), _IntValue, ("50")),
 
     _Inspect_Label_Detect, CParam(_ProcessValue1, ("Type"), _ComboValue, ("Multiformat")),
@@ -170,8 +170,8 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Line_Measurement, CParam(_ProcessValue1, ("thinningType"), _ComboValue, ("0"), ("ZHANGSUEN,GUOHALL")),
     //_Inspect_Line_Measurement, CParam(_ProcessValue1, ("Start"), _IntValue, ("0")),
     //_Inspect_Line_Measurement, CParam(_ProcessValue1, ("End"), _IntValue, ("99999")),
-    _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),	// -1 : Open - 작은 White blob 들을 없앤다.
-    _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),	// 1 : Close - White blob 들을 묶는다..
+    _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("1")),
+    _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),
     _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Interval"), _IntValue, ("7")),
 
     _Inspect_Type_End,  CParam(_FilterValue, (""), _IntValue, ("")), // 반드시 있어야한다.

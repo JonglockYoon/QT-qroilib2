@@ -2768,7 +2768,6 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
 int CImgProcEngine::SingleROIBarCode(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect)
 {
     QString str;
-    QZXing *qz = new QZXing(nullptr);
 
     if (croppedImage.channels() == 3)
         cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
@@ -2821,48 +2820,46 @@ int CImgProcEngine::SingleROIBarCode(cv::Mat croppedImage, Qroilib::RoiObject *p
     //cv::Mat m = MatIn;
     cv::Mat m = croppedImage;
 
-
-    int nGaussian = 3;
-    try {
-        cv::GaussianBlur(m, m, cv::Size(nGaussian,nGaussian), 0);
-    } catch (...) {
-        qDebug() << "Error g2 cvSmooth()";
-    }
-
-
-    QImage img = MatToQImage(m);
+    int decoderType = 0;
+    pParam = pData->getParam(("Decoder"));
+    if (pParam)
+       decoderType = (int)pParam->Value.toDouble();
 
     QString decode;
-    try {
-        decode = qz->decodeImage(img);
+    if (decoderType == 0)
+    {
+        QZXing *qz = new QZXing(nullptr);
+        QImage img = MatToQImage(m);
+
+        try {
+            decode = qz->decodeImage(img);
+        }
+        catch(zxing::NotFoundException  &e){}
+        catch(zxing::ReaderException  &e){}
+        delete qz;
+
+    } else {
+        cv::QRCodeDetector detector;
+        vector<Point> points;
+        if (detector.detect(m, points)) {
+            polylines(m, points, true, Scalar(0, 255, 255), 2);
+            String info = detector.decode(m, points);
+            if (!info.empty()) {
+                //polylines(m, points, true, Scalar(0, 0, 255), 2);
+                decode = info.c_str();
+            }
+            if (gCfg.m_bSaveEngineImg) {
+                str.sprintf(("%03d_Rst.BMP"), 310);
+                SaveOutImage(m, pData, str);
+            }
+        }
     }
-    catch(zxing::NotFoundException  &e){}
-    catch(zxing::ReaderException  &e){}
-
     qDebug() << "Barcode :" << decode;
-
     str = "Barcode : " + decode;
     theMainWindow->DevLogSave(str.toLatin1().data());
     m_DetectResult.resultType = RESULTTYPE_STRING;
     strcpy(m_DetectResult.str, str.toLatin1().data());
     pData->m_vecDetectResult.push_back(m_DetectResult);
-
-    delete qz;
-
-    cv::QRCodeDetector detector;
-    vector<Point> points;
-    if (detector.detect(m, points)) {
-        polylines(m, points, true, Scalar(0, 255, 255), 2);
-        String info = detector.decode(m, points);
-        if (!info.empty()) {
-            polylines(m, points, true, Scalar(0, 0, 255), 2);
-            qDebug() << "OpenCV Barcode :" << info.c_str();
-        }
-        if (gCfg.m_bSaveEngineImg) {
-            str.sprintf(("%03d_Rst.BMP"), 310);
-            SaveOutImage(m, pData, str);
-        }
-    }
 
     return 0;
 }

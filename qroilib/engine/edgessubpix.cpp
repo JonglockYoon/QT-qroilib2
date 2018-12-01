@@ -17,7 +17,7 @@ static void getCannyKernel(cv::OutputArray _d, double alpha)
 
     Mat k = _d.getMat();
 
-    vector<float> kerF(ksize, 0.0f);
+    std::vector<float> kerF(ksize, 0.0f);
     kerF[r] = 0.0f;
     double a2 = alpha * alpha;
     float sum = 0.0f;
@@ -254,7 +254,7 @@ static inline  double getAmplitude(Mat &dx, Mat &dy, int i, int j)
     return norm(mag);
 }
 
-static inline void getMagNeighbourhood(Mat &dx, Mat &dy, Point &p, int w, int h, vector<double> &mag)
+static inline void getMagNeighbourhood(Mat &dx, Mat &dy, Point &p, int w, int h, std::vector<double> &mag)
 {
     int top = p.y - 1 >= 0 ? p.y - 1 : p.y;
     int down = p.y + 1 < h ? p.y + 1 : p.y;
@@ -272,7 +272,7 @@ static inline void getMagNeighbourhood(Mat &dx, Mat &dy, Point &p, int w, int h,
     mag[8] = getAmplitude(dx, dy, down, right);
 }
 
-static inline void get2ndFacetModelIn3x3(vector<double> &mag, vector<double> &a)
+static inline void get2ndFacetModelIn3x3(std::vector<double> &mag, std::vector<double> &a)
 {
     a[0] = (-mag[0] + 2.0 * mag[1] - mag[2] + 2.0 * mag[3] + 5.0 * mag[4] + 2.0 * mag[5] - mag[6] + 2.0 * mag[7] - mag[8]) / 9.0;
     a[1] = (-mag[0] + mag[2] - mag[3] + mag[5] - mag[6] + mag[8]) / 6.0;
@@ -286,7 +286,7 @@ static inline void get2ndFacetModelIn3x3(vector<double> &mag, vector<double> &a)
    dfdrr, dfdrc, and dfdcc, and sort them in descending order according to
    their absolute values. 
 */
-static inline void eigenvals(vector<double> &a, double eigval[2], double eigvec[2][2])
+static inline void eigenvals(std::vector<double> &a, double eigval[2], double eigvec[2][2])
 {
     // derivatives
     // fx = a[1], fy = a[2]
@@ -362,14 +362,14 @@ static inline double vector2angle(double x, double y)
     return a >= 0.0 ? a : a + CV_2PI;
 }
 
-void extractSubPixPoints(Mat &dx, Mat &dy, vector<vector<Point> > &contoursInPixel, vector<Contour> &contours)
+void extractSubPixPoints(Mat &dx, Mat &dy, std::vector<vector<Point> > &contoursInPixel, std::vector<Contour> &contours)
 {
     int w = dx.cols;
     int h = dx.rows;
     contours.resize(contoursInPixel.size());
     for (size_t i = 0; i < contoursInPixel.size(); ++i)
     {
-        vector<Point> &icontour = contoursInPixel[i];
+        std::vector<Point> &icontour = contoursInPixel[i];
         Contour &contour = contours[i];
         contour.points.resize(icontour.size());
         contour.response.resize(icontour.size());
@@ -379,9 +379,9 @@ void extractSubPixPoints(Mat &dx, Mat &dy, vector<vector<Point> > &contoursInPix
 #endif
         for (int j = 0; j < (int)icontour.size(); ++j)
         {
-            vector<double> magNeighbour(9);
+            std::vector<double> magNeighbour(9);
             getMagNeighbourhood(dx, dy, icontour[j], w, h, magNeighbour);
-            vector<double> a(9);
+            std::vector<double> a(9);
             get2ndFacetModelIn3x3(magNeighbour, a);
            
             // Hessian eigen vector 
@@ -416,7 +416,7 @@ void extractSubPixPoints(Mat &dx, Mat &dy, vector<vector<Point> > &contoursInPix
 //---------------------------------------------------------------------
 // gaussian alpha 
 void EdgesSubPix(Mat &gray, double alpha, int low, int high,
-    vector<Contour> &contours, OutputArray hierarchy, int mode)
+    std::vector<Contour> &contours, OutputArray hierarchy, int mode)
 {
     Mat blur;
     GaussianBlur(gray, blur, Size(0, 0), alpha, alpha);
@@ -435,7 +435,7 @@ void EdgesSubPix(Mat &gray, double alpha, int low, int high,
     postCannyFilter(gray, dx, dy, lowThresh, highThresh, edge);
 
     // contours in pixel precision
-    vector<vector<Point> > contoursInPixel;
+    std::vector<vector<Point> > contoursInPixel;
     findContours(edge, contoursInPixel, hierarchy, mode, CHAIN_APPROX_NONE);
 
     // subpixel position extraction with steger's method and facet model 2nd polynominal in 3x3 neighbourhood
@@ -443,8 +443,8 @@ void EdgesSubPix(Mat &gray, double alpha, int low, int high,
 
 }
 
-void EdgesSubPix(Mat &gray, double alpha, int low, int high, vector<Contour> &contours)
+void EdgesSubPix(Mat &gray, double alpha, int low, int high, std::vector<Contour> &contours)
 {
-    vector<Vec4i> hierarchy;
+    std::vector<Vec4i> hierarchy;
     EdgesSubPix(gray, alpha, low, high, contours, hierarchy, RETR_LIST);
 }
