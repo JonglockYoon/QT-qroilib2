@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="246" height="228" roiwidth="1" roiheight="1" nextobjectid="1">
+<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="744" height="480" roiwidth="1" roiheight="1" nextobjectid="1">
  <objectgroup name="channel1" x="-1" y="-1">
-  <object id="1" name="noname1201215338" x="29.2105" y="17.6842" width="198.947" height="180">
+  <object id="1" name="noname1201215338" x="29.2105" y="17.6842" width="690.914" height="447.258">
    <rectangle/>
    <param InspectType="510">
     <param00 steptype="1" name="Low Threshold" valuetype="1" value="230" detail=""/>

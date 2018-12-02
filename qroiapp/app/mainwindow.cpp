@@ -532,6 +532,19 @@ void MainWindow::setHistogramImage()
     qimage_to_mat(camimg, src);
     SetCameraPause(m_iActiveView, true);
 
+    Mat tmp;
+    for (const Layer *layer : v->mRoi->objectGroups()) {
+        const ObjectGroup &objectGroup = *static_cast<const ObjectGroup*>(layer);
+        for (const Qroilib::RoiObject *roiObject : objectGroup) {
+            Qroilib::RoiObject *mObject = (Qroilib::RoiObject *)roiObject;
+            QRectF r = mObject->bounds();
+            cv::Rect rect = cv::Rect(r.x(), r.y(), r.width(), r.height());
+            tmp = src(rect);
+            src = tmp;
+            break;
+        }
+    }
+
     /// Separate the image in 3 places ( B, G and R )
     vector<Mat> bgr_planes;
     split( src, bgr_planes );
@@ -577,9 +590,31 @@ void MainWindow::setHistogramImage()
                           Scalar( 0, 0, 255), 2, 8, 0  );
     }
 
+    const int marg = 30;
+    Mat outImage( hist_h+marg, hist_w+marg, CV_8UC3, Scalar( 0,0,0) );
+    histImage.copyTo(outImage(cv::Rect(marg, 0, hist_w, hist_h)));
+
+    line( outImage, Point(marg,hist_h+2), Point(hist_w+marg,hist_h+2), Scalar( 128, 128, 128), 2, 8, 0);
+    line( outImage, Point(marg,0), Point(marg,hist_h), Scalar( 128, 128, 128), 2, 8, 0);
+    int y = hist_h;
+    std::string str1 = "";
+    for (int i=0; i<histSize; i=i+50) {
+        int x = bin_w*i;
+        line( outImage, Point(x+marg,y), Point(x+marg,y+10), Scalar( 128, 128, 128), 2, 8, 0);
+        str1 = std::to_string(i);
+        putText(outImage, str1, Point(x+marg-10,y+20), FONT_HERSHEY_SIMPLEX, 0.4, Scalar(255,255,255), 1);
+    }
+    for (int i=0; i<histImage.rows; i=i+50) {
+        line( outImage, Point(25,y-i), Point(30,y-i), Scalar( 128, 128, 128), 2, 8, 0);
+        str1 = std::to_string(i);
+        putText(outImage, str1, Point(0,y-i), FONT_HERSHEY_SIMPLEX, 0.4, Scalar(255,255,255), 1);
+    }
+
     /// Display
-    namedWindow("calcHist Demo", cv::WINDOW_AUTOSIZE );
-    imshow("calcHist Demo", histImage );
+    QString time = QDateTime::currentDateTime().toString("mmss");
+    std::string str = ("calcHist - " + time).toLatin1().data();
+    namedWindow(str, cv::WINDOW_AUTOSIZE );
+    imshow(str, outImage );
 }
 
 void MainWindow::setChannelAll()
