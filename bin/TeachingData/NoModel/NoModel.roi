@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="512" height="480" roiwidth="1" roiheight="1" nextobjectid="2">
+<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="246" height="228" roiwidth="1" roiheight="1" nextobjectid="1">
  <objectgroup name="channel1" x="-1" y="-1">
-  <object id="1" name="noname1130105951" x="37.975" y="19.975" width="446.075" height="426.025">
+  <object id="1" name="noname1201215338" x="29.2105" y="17.6842" width="198.947" height="180">
    <rectangle/>
-   <param InspectType="506">
-    <param00 steptype="1" name="Type" valuetype="4" value="0" detail=""/>
-    <param01 steptype="1" name="Low Threshold" valuetype="1" value="0" detail=""/>
-    <param02 steptype="1" name="High Threshold" valuetype="1" value="0" detail=""/>
-    <param03 steptype="2" name="BlockSize" valuetype="1" value="0" detail=""/>
-    <param04 steptype="2" name="C" valuetype="1" value="0" detail=""/>
-    <param05 steptype="3" name="Noise out 1" valuetype="1" value="0" detail=""/>
-    <param06 steptype="3" name="Noise out 2" valuetype="1" value="0" detail=""/>
-    <param07 steptype="3" name="Area" valuetype="1" value="0" detail=""/>
+   <param InspectType="510">
+    <param00 steptype="1" name="Low Threshold" valuetype="1" value="230" detail=""/>
+    <param01 steptype="1" name="High Threshold" valuetype="1" value="255" detail=""/>
+    <param02 steptype="1" name="Noise out 1" valuetype="1" value="-3" detail=""/>
+    <param03 steptype="1" name="Noise out 2" valuetype="1" value="3" detail=""/>
+    <param04 steptype="1" name="Noise out 3" valuetype="1" value="-3" detail=""/>
+    <param05 steptype="2" name="Roundness accuracy rate" valuetype="2" value="25.00" detail=""/>
+    <param06 steptype="2" name="Minimum circle radius" valuetype="2" value="35.00" detail=""/>
+    <param07 steptype="2" name="Maximum circle radius" valuetype="2" value="60.00" detail=""/>
    </param>
   </object>
  </objectgroup>

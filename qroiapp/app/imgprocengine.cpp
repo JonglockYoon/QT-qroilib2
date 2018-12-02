@@ -131,7 +131,7 @@ int CImgProcEngine::InspectOneItem(cv::Mat img, RoiObject *pData)
 	switch (pData->mInspectType)
 	{
     case _Inspect_Patt_Identify:
-        //strLog.Format(("[%s] InspectType : _Inspect_Patt_Identify"), pData->m_sName);
+        //strLog.sprintf(("[%s] InspectType : _Inspect_Patt_Identify"), pData->m_sName);
         //MSystem.DevLogSave(("%s"), strLog);
         SinglePattIdentify(croppedImage, pData, rect);
         break;
@@ -168,6 +168,12 @@ int CImgProcEngine::InspectOneItem(cv::Mat img, RoiObject *pData)
         break;
     case _Inspect_Label_Detect:
         SingleROILabelDetect(croppedImage, pData, rect);
+        break;
+    case _Inspect_Area_Segment:
+        SingleROIAreaSegment(croppedImage, pData, rect);
+        break;
+    case _Inspect_Roi_Circle_Hole:
+        SingleROICircleHole(croppedImage, pData, rect);
         break;
     }
 
@@ -316,13 +322,13 @@ int CImgProcEngine::TowPointAlignImage(cv::Mat gray)
     const double dResY = gCfg.m_pCamInfo[0].dResY;
 
     for (int i = 0; i<alignpt.size(); i++) {
-        //TRACE(_T("align %.3f %.3f\n"), alignpt[i].x, alignpt[i].y);
+        //TRACE(("align %.3f %.3f\n"), alignpt[i].x, alignpt[i].y);
 
         alignpt[i].x = alignpt[i].x * dResX;
         alignpt[i].y = alignpt[i].y * dResY;
     }
     for (int i = 0; i<insppt.size(); i++) {
-        //TRACE(_T("insp %.3f %.3f\n"), insppt[i].x, insppt[i].y);
+        //TRACE(("insp %.3f %.3f\n"), insppt[i].x, insppt[i].y);
 
         insppt[i].x = insppt[i].x * dResX;
         insppt[i].y = insppt[i].y * dResY;
@@ -334,7 +340,7 @@ int CImgProcEngine::TowPointAlignImage(cv::Mat gray)
         double dTheta1 = CalculDegree(alignpt[1], alignpt[0]); // 티칭각도 -> mask
         double dTheta2 = CalculDegree(insppt[1], insppt[0]); // 안착 각도 -> insp
         double dTheta = (dTheta1 - dTheta2);
-        //TRACE(_T("Compensation theta value %.3f\n"), dTheta);
+        //TRACE(("Compensation theta value %.3f\n"), dTheta);
 
         // center of image
         cv::Point2d dPointCenter;
@@ -380,7 +386,7 @@ int CImgProcEngine::TowPointAlignImage(cv::Mat gray)
         int sx = (int)(dsx / dResX) * -1;
         int sy = (int)(dsy / dResY) * -1;
         sy = sy + 4;
-        //TRACE(_T("Compensation xy value %d %d\n"), sx, sy);
+        //TRACE(("Compensation xy value %d %d\n"), sx, sy);
 
 #if 1
         Mat mat;
@@ -1193,7 +1199,7 @@ int CImgProcEngine::SinglePattIdentify(cv::Mat grayImage, RoiObject *pData, QRec
     MatchRate = TemplateMatch(pData, graySearchImg, grayTemplateImg, left_top, dMatchShapes);
     if (LimitMatchRate <= MatchRate)
     {
-        //strMsg.Format(("TemplateMatch Result Success ===> : %.2f%%"), MatchRate);
+        //strMsg.sprintf(("TemplateMatch Result Success ===> : %.2f%%"), MatchRate);
         //MSystem.DevLogSave(("%s"), strMsg);
 
         if (m_DetectResult.result == true)
@@ -1722,8 +1728,8 @@ int CImgProcEngine::EdgeCorner(Qroilib::RoiObject *pData, cv::Mat graySearchImgI
 
     graySearchImg = cv::Mat::zeros(graySearchImg.size(), graySearchImg.type());
     for (int i = 0; i < blobs.GetNumBlobs(); i++) {
-        CBlob *currentBlob = blobs.GetBlob(i);
-        currentBlob->FillBlob(graySearchImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
+        CBlob *p = blobs.GetBlob(i);
+        p->FillBlob(graySearchImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
     }
 
     if (m_bSaveEngineImg){
@@ -1740,12 +1746,12 @@ int CImgProcEngine::EdgeCorner(Qroilib::RoiObject *pData, cv::Mat graySearchImgI
     BLOBSEL *pBlobSel;
     graySearchImg = cv::Mat::zeros(graySearchImg.size(), graySearchImg.type());
     for (int i = 0; i < blobs.GetNumBlobs(); i++) {
-        CBlob *currentBlob = blobs.GetBlob(i);
-        currentBlob->FillBlob(graySearchImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
+        CBlob *p = blobs.GetBlob(i);
+        p->FillBlob(graySearchImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
 
-        cv::Rect rect = currentBlob->GetBoundingBox();
+        cv::Rect rect = p->GetBoundingBox();
         pBlobSel = new BLOBSEL;
-        pBlobSel->area = currentBlob->Area();
+        pBlobSel->area = p->Area();
         pBlobSel->pt.x = (rect.x + rect.width / 2) / 4; // Blob의 중앙점
         pBlobSel->pt.y = (rect.y + rect.height / 2) / 4;
         vecBlobs.push_back(pBlobSel);
@@ -1802,8 +1808,8 @@ int CImgProcEngine::EdgeCorner(Qroilib::RoiObject *pData, cv::Mat graySearchImgI
     // Filter된  blob을 이미지로 변환
     graySearchImg = cv::Mat::zeros(graySearchImg.size(), graySearchImg.type());
     for (int i = 0; i < blobs.GetNumBlobs(); i++) {
-        CBlob *currentBlob = blobs.GetBlob(i);
-        currentBlob->FillBlob(graySearchImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
+        CBlob *p = blobs.GetBlob(i);
+        p->FillBlob(graySearchImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
     }
 
     if (m_bSaveEngineImg){
@@ -1938,9 +1944,9 @@ int CImgProcEngine::EdgeCornerByLine(Qroilib::RoiObject *pData, cv::Mat grayCrop
     }
     grayCroppedImg = cv::Mat::zeros(grayCroppedImg.size(), grayCroppedImg.type());
     // large blobs.
-    CBlob *currentBlob = blobs.GetBlob(0);
-    currentBlob->FillBlob(grayCroppedImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
-    cv::Rect rect = currentBlob->GetBoundingBox();
+    CBlob *p = blobs.GetBlob(0);
+    p->FillBlob(grayCroppedImg, CV_RGB(255, 255, 255));	// Draw the large blobs as white.
+    cv::Rect rect = p->GetBoundingBox();
 
     if (m_bSaveEngineImg)
     {
@@ -2555,42 +2561,40 @@ void CImgProcEngine::DrawResultCrossMark(cv::Mat img, RoiObject *pData)
     for (int i = 0; i < size; i++) {
         DetectResult *prst = &pData->m_vecDetectResult[i];
 
-        double x = 0;//prst->pt.x + rect.x();// / gCfg.m_pCamInfo[0].dResX;
-        double y = 0;//prst->pt.y + rect.y();// / gCfg.m_pCamInfo[0].dResY;
+        double x = prst->pt.x;// / gCfg.m_pCamInfo[0].dResX;
+        double y = prst->pt.y;// / gCfg.m_pCamInfo[0].dResY;
         qDebug() << "DrawResultCrossMark" << x << y;
 
-        double w = fabs(prst->br.x - prst->tl.x);
-        double h = fabs(prst->br.y - prst->tl.y);
-        if (w + h > 0)
+        if (prst->resultType == RESULTTYPE_RECT4P)
         {
-            if (prst->resultType == RESULTTYPE_RECT4P)
-            {
-                x = rect.x() + prst->tl.x + w / 2;
-                y = rect.y() + prst->tl.y + h / 2;
-                cv::line(img, cv::Point(prst->tl.x,prst->tl.y), cv::Point(prst->tr.x,prst->tr.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
-                cv::line(img, cv::Point(prst->tr.x,prst->tr.y), cv::Point(prst->br.x,prst->br.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
-                cv::line(img, cv::Point(prst->br.x,prst->br.y), cv::Point(prst->bl.x,prst->bl.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
-                cv::line(img, cv::Point(prst->bl.x,prst->bl.y), cv::Point(prst->tl.x,prst->tl.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
-            }
-            else if (prst->resultType == RESULTTYPE_RECT)
-            {
-                x = rect.x() + prst->tl.x + w / 2;
-                y = rect.y() + prst->tl.y + h / 2;
-                Point2f pt1;
-                pt1.x = rect.x() + prst->tl.x;
-                pt1.y = rect.y() + prst->tl.y;
-                Point2f pt2 = Point2f((float)pt1.x+w, (float)pt1.y+h);
-                cv::rectangle(img, pt1, pt2, CV_RGB(255, 0, 0), 2);
-            }
-            else
-            {
-                x = rect.x() + prst->pt.x;
-                y = rect.y() + prst->pt.y;
-            }
+            cv::line(img, cv::Point(prst->tl.x,prst->tl.y), cv::Point(prst->tr.x,prst->tr.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
+            cv::line(img, cv::Point(prst->tr.x,prst->tr.y), cv::Point(prst->br.x,prst->br.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
+            cv::line(img, cv::Point(prst->br.x,prst->br.y), cv::Point(prst->bl.x,prst->bl.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
+            cv::line(img, cv::Point(prst->bl.x,prst->bl.y), cv::Point(prst->tl.x,prst->tl.y), cv::Scalar(128, 128, 128), 2, cv::LINE_AA);
+        }
+        else if (prst->resultType == RESULTTYPE_RECT)
+        {
+            Point2f pt1;
+            pt1.x = rect.x() + prst->tl.x;
+            pt1.y = rect.y() + prst->tl.y;
+            Point2f pt2;
+            pt2.x = rect.x() + prst->br.x;
+            pt2.y = rect.y() + prst->br.y;
+            cv::rectangle(img, pt1, pt2, CV_RGB(255, 0, 0), 2);
+        }
+        else if (prst->resultType == RESULTTYPE_RADIUS)
+        {
+            Point2f pt1;
+            pt1.x = rect.x() + prst->pt.x;
+            pt1.y = rect.y() + prst->pt.y;
+            cv::circle(img, pt1, prst->dRadius, CV_RGB(255, 0, 0), 2);
         }
 
         if (x > 0 && y > 0)
         {
+            x = rect.x() + prst->pt.x;
+            y = rect.y() + prst->pt.y;
+
             cv::Point pt1, pt2;
             pt1.x = x - 40;
             pt1.y = y;
@@ -3415,16 +3419,19 @@ int CImgProcEngine::AppendOneLine(cv::Mat& mat, vector<ElemLineIt> &vecLineIt, E
     return 0;
 }
 
-int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect)
+int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, RoiObject *pData, QRectF rect)
 {
     if (pData == nullptr)
         return -1;
     QString str;
 
+    Mat gray_image;
     if (croppedImage.channels() == 3)
-        cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(croppedImage, gray_image, cv::COLOR_BGR2GRAY);
+    else
+        croppedImage.copyTo(gray_image);
 
-    Mat src = croppedImage.clone();
+    Mat src = gray_image.clone();
 
     ThresholdRange(pData, src, 110);
     NoiseOut(pData, src, -1, 125);
@@ -3441,15 +3448,16 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
 
     int nGaussian = 3;
     try {
-        cv::GaussianBlur(src, src, cv::Size(nGaussian,nGaussian), 0);
-    } catch (...) {
-        qDebug() << "Error g2 cvSmooth()";
+        cv::GaussianBlur(src, src, cv::Size(nGaussian, nGaussian), 0);
+    }
+    catch (...) {
+        //qDebug() << "Error g2 cvSmooth()";
     }
     Mat dst;
     cv::Canny(src, dst, nThreshold1, nThreshold2);
     cv::Mat element1(nEdgeClose, nEdgeClose, CV_8U, cv::Scalar(1));
-    morphologyEx(src, src, MORPH_CLOSE, element1, Point(-1,-1), 1);
-    if (m_bSaveEngineImg){
+    morphologyEx(src, src, MORPH_CLOSE, element1, Point(-1, -1), 1);
+    if (m_bSaveEngineImg) {
         SaveOutImage(dst, pData, ("201_Canny.jpg"));
     }
 
@@ -3465,7 +3473,7 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
 
     CBlobResult blobs = CBlobResult(dst);
     int nBlobs = blobs.GetNumBlobs();
-    for (int i=0; i<nBlobs; i++)
+    for (int i = 0; i<nBlobs; i++)
     {
         CBlob *p = blobs.GetBlob(i);
         cv::Rect rect = p->GetBoundingBox();
@@ -3483,7 +3491,7 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
             p->ClearContours();
         p->FillBlob(bdst, CVX_WHITE, 0, 0, false);
     }
-    if (m_bSaveEngineImg){
+    if (m_bSaveEngineImg) {
         SaveOutImage(bdst, pData, ("250_Blob.jpg"));
     }
 
@@ -3499,7 +3507,7 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
             p->ClearContours();
         p->FillBlob(bdst, CVX_WHITE, 0, 0, false);
     }
-    if (m_bSaveEngineImg){
+    if (m_bSaveEngineImg) {
         SaveOutImage(bdst, pData, ("260_Blob.jpg"));
     }
 
@@ -3511,23 +3519,23 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
     if (pParam)	e2 = (int)pParam->Value.toDouble();
 
     cv::Mat element7(e1, e1, CV_8U, cv::Scalar(1));
-    morphologyEx(bdst, bdst, MORPH_CLOSE, element7, Point(-1,-1), 1);
+    morphologyEx(bdst, bdst, MORPH_CLOSE, element7, Point(-1, -1), 1);
     cv::Mat element11(e2, e2, CV_8U, cv::Scalar(1));
-    morphologyEx(bdst, bdst, MORPH_OPEN, element11, Point(-1,-1), 1);
-    if (m_bSaveEngineImg){
+    morphologyEx(bdst, bdst, MORPH_OPEN, element11, Point(-1, -1), 1);
+    if (m_bSaveEngineImg) {
         SaveOutImage(bdst, pData, ("270_Blob.jpg"));
     }
     Mat src2 = bdst.clone();
 
 
-    cv::GaussianBlur(bdst, bdst, cv::Size(nGaussian,nGaussian), 0);
+    cv::GaussianBlur(bdst, bdst, cv::Size(nGaussian, nGaussian), 0);
     vector<vector<Point>> contours;
-    findContours(bdst, contours,  cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    findContours(bdst, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     Mat drawImage = cv::Mat::zeros(src.size(), src.type());
     int size = contours.size();
     vector<vector<Point>> approx(size);
-    for (int k=0; k<size; k++)
+    for (int k = 0; k<size; k++)
     {
         Rect rect = boundingRect(contours[k]);
         int l1 = min(rect.width, rect.height);
@@ -3537,12 +3545,12 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
 
         approxPolyDP(Mat(contours[k]), approx[k], arcLength(Mat(contours[k]), true)*0.04, true);
         if (approx[k].size() == 0)
-                continue;
+            continue;
 
         int size = approx[k].size();
         vector<int> angle;
         for (int a = 0; a < size; a++) {
-            int ang = GetAngleABC(approx[k][a], approx[k][(a + 1) % size], approx[k][(a + 2)%size]);
+            int ang = GetAngleABC(approx[k][a], approx[k][(a + 1) % size], approx[k][(a + 2) % size]);
             angle.push_back(ang);
         }
 
@@ -3551,46 +3559,543 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, Qroilib::RoiObjec
         int maxAngle = angle.back();
         if (size == 4 && maxAngle < 120)
         {
-            cv::drawContours(drawImage, approx, k, CVX_WHITE, 3, 8);
-            str.sprintf(("301_approxPoly.jpg"));
-            SaveOutImage(drawImage, pData, str);
+            cv::drawContours(drawImage, approx, k, CVX_WHITE, -1, 8);
+
+#if 0
+            cv::RotatedRect box = cv::minAreaRect(cv::Mat(approx[k]));
+            //double tangle = 0;
+            //tangle = box.angle;
+            //TRACE(("\nAngle = %.1f"), tangle);
+            Mat m2 = drawImage(box.boundingRect());
+
+            vector<Point> nn = approx[k];
+            std::stable_sort(nn.begin(), nn.end(), [](const cv::Point lhs, const cv::Point rhs)->bool {
+                if (lhs.y < rhs.y) // assending
+                    return true;
+                return false;
+            });
+            cv::Point p1 = nn[0];
+            cv::Point p2 = nn[1];
+            double tangle3 = CalculDegree(p2, p1) + 90;
+            TRACE(("\nAngle3 = %.1f"), tangle3);
+
+            Moments mu = moments(m2);
+            Point2f center = Point2f(static_cast<float>(mu.m10 / (mu.m00 + 1e-5)), static_cast<float>(mu.m01 / (mu.m00 + 1e-5)));
+            center = Point2f(m2.cols/2, m2.rows/2);
+
+            cv::Mat rot_mat = cv::getRotationMatrix2D(center, -tangle3, 1);
+            //cv::Mat rotated;
+            cv::warpAffine(m2, m2, rot_mat, m2.size(), cv::INTER_CUBIC);
+
+#endif
         }
     }
 
-
-    croppedImage.copyTo(src);
-
-    ThresholdRange(pData, src, 110);
-    NoiseOut(pData, src, -1, 125);
-
-    cv::Mat element15(20, 20, CV_8U, cv::Scalar(1));
-    morphologyEx(src, src, MORPH_OPEN, element15, Point(-1,-1), 1);
-    if (m_bSaveEngineImg){
-        SaveOutImage(src, pData, ("501_Blob.jpg"));
+    if (m_bSaveEngineImg) {
+        str.sprintf(("302_approxPoly.jpg"));
+        SaveOutImage(drawImage, pData, str);
     }
 
-    // Circl find
+    SingleROIAreaSegment(croppedImage, pData, rect);
 
-    double dArea2 = 10000;
-    pParam = pData->getParam(("Area2"));
-    if (pParam)	dArea2 = pParam->Value.toDouble();
+    Mat tmp;
+    cv::cvtColor(croppedImage, tmp, cv::COLOR_BGR2GRAY);
+    bitwise_or(drawImage, tmp, tmp);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("400_result.jpg"));
+        SaveOutImage(tmp, pData, str);
+    }
 
-    blobs = CBlobResult(src);
+    cv::dilate(tmp, tmp, cv::Mat(), cv::Point(-1, -1), 40); //팽창.
+    bitwise_not(tmp, tmp);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("410_result.jpg"));
+        SaveOutImage(tmp, pData, str);
+    }
+
+    cv::Mat element15(15, 15, CV_8U, cv::Scalar(1)); // 15 or 90
+    morphologyEx(tmp, tmp, cv::MORPH_OPEN, element15 );
+
+    int iMaxIdx = -1;
+    double dMaxArea = 0;
+    blobs = CBlobResult(tmp);
     nBlobs = blobs.GetNumBlobs();
     bdst = cv::Mat::zeros(dst.size(), dst.type());
     for (int i = 0; i < nBlobs; i++)
     {
         CBlob *p = blobs.GetBlob(i);
         double area = p->Area();
-        if (area < 1000 || area > dArea2)
-            p->ClearContours();
-        p->FillBlob(bdst, CVX_WHITE, 0, 0, false);
+        if (area > dMaxArea) {
+            dMaxArea = area;
+            iMaxIdx = i;
+        }
     }
-    bitwise_or(bdst, src2, bdst);
-    if (m_bSaveEngineImg){
-        SaveOutImage(bdst, pData, ("511_Blob.jpg"));
+    if (iMaxIdx >= 0) {
+        CBlob *p = blobs.GetBlob(iMaxIdx);
+        cv::Point2f center = p->getCenter();
+        cv::circle(tmp, center, 10, CVX_BLICK, cv::FILLED);
+    }
+
+
+    if (m_bSaveEngineImg) {
+        str.sprintf(("420_result.jpg"));
+        SaveOutImage(tmp, pData, str);
     }
 
 
     return 0;
 }
+
+
+int CImgProcEngine::SingleROIAreaSegment(cv::Mat croppedImage, RoiObject *pData, QRectF rect)
+{
+    if (pData == nullptr)
+        return -1;
+    QString str;
+
+    //cv::Size sz = cv::Size(croppedImage.cols * 0.4, croppedImage.rows * 0.4);
+    //cv::Mat out = cv::Mat(sz, 8, 3);
+    //cv::resize(croppedImage, out, out.size(), 0, 0, cv::INTER_CUBIC);
+
+    Mat gray_image;
+    if (croppedImage.channels() == 3)
+        cv::cvtColor(croppedImage, gray_image, cv::COLOR_BGR2GRAY);
+    else
+        croppedImage.copyTo(gray_image);
+
+    //cv::imshow("Gray Image", gray_image); //gray영상.
+    cv::Mat binary_image;
+    cv::threshold(gray_image, binary_image, 20, 255, cv::THRESH_BINARY_INV);
+//	cv::imshow("Binary Image", binary_image); //이진영상으로변환
+    if (m_bSaveEngineImg) {
+        str.sprintf(("501_BinaryImage.jpg"));
+        SaveOutImage(binary_image, pData, str);
+    }
+    cv::Mat fg;
+    cv::erode(binary_image, fg, cv::Mat(), cv::Point(-1, -1), 12); //침식.
+//	cv::imshow("Foreground", fg);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("511_Foreground.jpg"));
+        SaveOutImage(fg, pData, str);
+    }
+
+    cv::Mat bg;
+    cv::dilate(binary_image, bg, cv::Mat(), cv::Point(-1, -1), 40); //팽창.
+    cv::threshold(bg, bg, 1, 128, cv::THRESH_BINARY_INV);
+    //(1보다작은)배경을128, (1보다큰)객체0. Threshold설정INVERSE 적용.
+//	cv::imshow("Background", bg);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("512_Background.jpg"));
+        SaveOutImage(fg, pData, str);
+    }
+
+    cv::Mat dist_8u(binary_image.size(), CV_8U, cv::Scalar(0));
+    dist_8u = fg + bg; //침식+팽창= 마커영상으로조합. 워터쉐드알고리즘에 입력으로 사용됨. //0,128,255로구성.
+//	cv::imshow("Marker", markers);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("521_markers.jpg"));
+        SaveOutImage(dist_8u, pData, str);
+    }
+
+    //워터쉐드분할.
+    cv::Mat markers = Mat::zeros(dist_8u.size(), CV_32SC1);
+    dist_8u.convertTo(markers, CV_32SC1); //32비트마커스로자료형변환.
+    cv::watershed(croppedImage, markers);
+
+    cv::Mat outMat = Mat::zeros(markers.size(), CV_8UC3);
+    for (int i = 1; i < markers.rows-1; i++)
+    {
+        for (int j = 1; j < markers.cols-1; j++)
+        {
+            int uval = markers.at<int>(i, j);
+            if (uval == -1)
+                outMat.at<Vec3b>(i, j) = Vec3b(255, 255, 255); // White Line
+        }
+    }
+
+    // Find total markers
+    Mat tmp;
+    cv::cvtColor(outMat, tmp, cv::COLOR_BGR2GRAY);
+    //cv::dilate(tmp, tmp, cv::Mat(), cv::Point(-1, -1), 1); //팽창.
+    vector<vector<Point> > contours;
+    if (m_bSaveEngineImg) {
+        str.sprintf(("530_Segmentation.jpg"));
+        SaveOutImage(tmp, pData, str);
+    }
+    Mat tmp2;
+    cv::cvtColor(outMat, tmp2, cv::COLOR_BGR2GRAY);
+
+    findContours(tmp, contours, cv::RETR_TREE, cv::CHAIN_APPROX_NONE);
+
+    int filling = cv::floodFill(outMat, cv::Point(0, 0), CV_RGB(255, 255, 255), (cv::Rect*)0, cv::Scalar(), 200);
+
+    //wsmarkers.convertTo(tmp, CV_8U);
+    //wsmarkers.convertTo(tmp, CV_8U, 255, 255); // 0,255로구성.
+//	cv::imshow("Segmentation", tmp);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("531_SegmentationFill.jpg"));
+        SaveOutImage(outMat, pData, str);
+    }
+
+    // Draw the foreground markers
+    double maxArea = 0;
+    int idx = -1;
+    for (size_t i = 0; i < contours.size() - 1; i++) {
+        double area = contourArea(contours[i]);
+        if (maxArea < area) {
+            maxArea = area;
+            idx = i;
+        }
+    }
+
+    for (size_t i = 0; i < contours.size(); i++) {
+        double area = contourArea(contours[i]);
+        if (maxArea - area > 10000) {
+            drawContours(outMat, contours, i, CV_RGB(255, 255, 255), -1);
+            drawContours(tmp2, contours, i, CV_RGB(255, 255, 255), -1);
+        }
+    }
+    cv::erode(tmp2, tmp2, cv::Mat(), cv::Point(-1, -1), 3); //침식.
+
+    if (m_bSaveEngineImg) {
+        str.sprintf(("540_Blob.jpg"));
+        SaveOutImage(tmp2, pData, str);
+    }
+
+    if (idx >= 0) {
+        Moments mu = moments(contours[idx]);
+        //1e-5 : avoid zero devide
+        Point2f center = Point2f(static_cast<float>(mu.m10 / (mu.m00 + 1e-5)), static_cast<float>(mu.m01 / (mu.m00 + 1e-5)));
+
+        CBlobResult blobs;
+        blobs = CBlobResult(tmp2);
+        int n = blobs.GetNumBlobs();
+        n = blobs.GetNumBlobs();
+        for (int i = 0; i < n; i++) {
+            CBlob *p = blobs.GetBlob(i);
+            if (p->Area() > 3000) {
+                cv::Point2f pt = p->getCenter();
+
+                double a2 = ((double)atan2(pt.y - center.y, pt.x - center.x) * 180.0f / PI);
+                const int llen = 2048;
+                double s = sin((a2)*CV_PI / 180);
+                double c = cos((a2)*CV_PI / 180);
+                Point p2(center.x + c*llen, center.y + s*llen);
+                cv::line(outMat, center, p2, CV_RGB(255, 255, 255), 20);
+            }
+        }
+        if (maxArea < 1000000)
+            cv::circle(outMat, center, 150, CVX_WHITE, cv::FILLED);
+        else
+            cv::circle(outMat, center, 300, CVX_WHITE, cv::FILLED);
+    }
+
+//	cv::imshow("Watershed", tmp);
+    if (m_bSaveEngineImg) {
+        str.sprintf(("590_Watershed.jpg"));
+        SaveOutImage(outMat, pData, str);
+    }
+    //Mat tmp3;
+    //cv::cvtColor(tmp, tmp3, cv::COLOR_GRAY2BGR);
+    outMat.copyTo(croppedImage);
+
+    return 0;
+}
+
+int CImgProcEngine::SingleROICircleHole(cv::Mat croppedImage, RoiObject* pData, QRectF rect)
+{
+    QString str;
+    Mat grayImg;
+
+    pData->m_vecDetectResult.clear();
+    if (croppedImage.channels() == 3)
+        cv::cvtColor(croppedImage, grayImg, cv::COLOR_BGR2GRAY);
+    else
+        croppedImage.copyTo(grayImg);
+
+    int ret = 0;
+    CParam *pParam;
+
+    if (m_bSaveEngineImg)
+    {
+        str.sprintf(("%d_Src.jpg"), 200);
+        SaveOutImage(grayImg, pData, str);
+    }
+
+    int nThresholdLowValue = 80;
+    pParam = pData->getParam(("Low Threshold"));
+    if (pParam)
+        nThresholdLowValue = (int)pParam->Value.toDouble();
+    int nThresholdHighValue = 255;
+    str.sprintf(("High Threshold"));
+    pParam = pData->getParam(str);
+    if (pParam)
+        nThresholdHighValue = (int)pParam->Value.toDouble();
+
+    double dMinCircleRadius = 30;// nLow;
+    double dMaxCircleRadius = 200;// nHigh;
+    pParam = pData->getParam(("Minimum circle radius"));
+    if (pParam)
+        dMinCircleRadius = pParam->Value.toDouble();
+    str.sprintf(("Maximum circle radius"));
+    pParam = pData->getParam(str);
+    if (pParam)
+        dMaxCircleRadius = pParam->Value.toDouble();
+    double dCircleRateValue = 0.7;
+    str.sprintf(("Roundness accuracy rate"));
+    pParam = pData->getParam(str);
+    if (pParam)
+        dCircleRateValue = pParam->Value.toDouble() / 100.0;
+
+    cv::inRange(grayImg, Scalar(nThresholdLowValue), Scalar(nThresholdHighValue), grayImg);
+
+    if (m_bSaveEngineImg)
+    {
+        str.sprintf(("%d_Threshold.jpg"), 203);
+        SaveOutImage(grayImg, pData, str);
+    }
+
+    NoiseOut(pData, grayImg, _ProcessValue1, 212);
+
+    if (m_bSaveEngineImg)
+    {
+        str.sprintf(("%d_Noise.jpg"), 234);
+        SaveOutImage(grayImg, pData, str);
+    }
+
+    RANSACIRCLE *pCircle;
+    Mat grayImg1 = grayImg.clone();
+
+    int retry = 0;
+again:
+    retry++;
+    vector<RANSACIRCLE> vecRansicCircle;
+    if (Find_RANSAC_Circle(grayImg, pData, vecRansicCircle) == 0)
+    {
+        int size = vecRansicCircle.size();
+
+        std::stable_sort(vecRansicCircle.begin(), vecRansicCircle.end(), [](const RANSACIRCLE lhs, const RANSACIRCLE rhs)->bool {
+            if (lhs.cPerc > rhs.cPerc) // descending
+                return true;
+            return false;
+        });
+
+
+        if (size <= 1 && retry < 10)
+            goto again;
+
+        if (size > 2 && retry < 10) {
+            float r1 = vecRansicCircle[0].radius;
+            float r2 = vecRansicCircle[1].radius;
+            if (fabs(r1-r2) < 3.0) // First, Second Radius 차가 큰것은 재 시도.
+                goto again;
+        }
+
+        if (vecRansicCircle.size() > 0)
+        {
+            pCircle = &vecRansicCircle[0];
+
+
+            if (pCircle->cPerc > dCircleRateValue &&  pCircle->radius > dMinCircleRadius &&  pCircle->radius < dMaxCircleRadius)
+            {
+                m_DetectResult.resultType = RESULTTYPE_RADIUS;
+                m_DetectResult.pt.x = pCircle->center.x;
+                m_DetectResult.pt.y = pCircle->center.y;
+                m_DetectResult.dRadius = pCircle->radius;
+                m_DetectResult.dValue = pCircle->cPerc; // 원형도.
+                pData->m_vecDetectResult.push_back(m_DetectResult);
+                str.sprintf(("====> RANSAC Result Circle found(%.1f). : %.1f (%.1f,%.1f)\n"),
+                            pCircle->cPerc, pCircle->radius, pCircle->center.x, pCircle->center.y);
+                qDebug() << (str);
+            }
+        }
+
+    }
+
+    if (m_DetectResult.dRadius > 0.0) {
+        str.sprintf(("Result circle: cPerc:%.1f center : %.1f,%.1f  radius : %.1f"),
+                    m_DetectResult.dValue, m_DetectResult.pt.x, m_DetectResult.pt.y, m_DetectResult.dRadius);
+        qDebug() << str;
+        //MSystem.m_pFormBottom->SetBottomMessage(str);
+    }
+
+    return 0;
+}
+
+// ref : https://stackoverflow.com/questions/26222525/opencv-detect-partial-circle-with-noise
+float CImgProcEngine::verifyCircle(cv::Mat dt, cv::Point2f center, float radius, std::vector<cv::Point2f> & inlierSet)
+{
+    unsigned int counter = 0;
+    unsigned int inlier = 0;
+    float minInlierDist = 2.0f;
+    float maxInlierDistMax = 100.0f;
+    float maxInlierDist = radius / 25.0f;
+    if (maxInlierDist<minInlierDist) maxInlierDist = minInlierDist;
+    if (maxInlierDist>maxInlierDistMax) maxInlierDist = maxInlierDistMax;
+
+    // choose samples along the circle and count inlier percentage
+    for (float t = 0; t<2 * 3.14159265359f; t += 0.05f)
+    {
+        counter++;
+        float cX = radius*cos(t) + center.x;
+        float cY = radius*sin(t) + center.y;
+
+        if (cX < dt.cols)
+            if (cX >= 0)
+                if (cY < dt.rows)
+                    if (cY >= 0)
+                        if (dt.at<float>(cY, cX) < maxInlierDist)
+                        {
+                            inlier++;
+                            inlierSet.push_back(cv::Point2f(cX, cY));
+                        }
+    }
+
+    return (float)inlier / float(counter);
+}
+
+inline void CImgProcEngine::getCircle(cv::Point2f& p1, cv::Point2f& p2, cv::Point2f& p3, cv::Point2f& center, float& radius)
+{
+    float x1 = p1.x;
+    float x2 = p2.x;
+    float x3 = p3.x;
+
+    float y1 = p1.y;
+    float y2 = p2.y;
+    float y3 = p3.y;
+
+    center.x = (x1*x1 + y1*y1)*(y2 - y3) + (x2*x2 + y2*y2)*(y3 - y1) + (x3*x3 + y3*y3)*(y1 - y2);
+    center.x /= (2 * (x1*(y2 - y3) - y1*(x2 - x3) + x2*y3 - x3*y2));
+
+    center.y = (x1*x1 + y1*y1)*(x3 - x2) + (x2*x2 + y2*y2)*(x1 - x3) + (x3*x3 + y3*y3)*(x2 - x1);
+    center.y /= (2 * (x1*(y2 - y3) - y1*(x2 - x3) + x2*y3 - x3*y2));
+
+    radius = sqrt((center.x - x1)*(center.x - x1) + (center.y - y1)*(center.y - y1));
+}
+
+std::vector<cv::Point2f> CImgProcEngine::getPointPositions(cv::Mat binaryImage)
+{
+    std::vector<cv::Point2f> pointPositions;
+
+    for (unsigned int y = 0; y<binaryImage.rows; ++y)
+    {
+        for (unsigned int x = 0; x<binaryImage.cols; ++x)
+        {
+            if (binaryImage.at<unsigned char>(y, x) > 0) pointPositions.push_back(cv::Point2f(x, y));
+        }
+    }
+
+    return pointPositions;
+}
+
+int CImgProcEngine::Find_RANSAC_Circle(Mat grayImgIn, RoiObject *pData, vector<RANSACIRCLE> &vecRansicCircle)
+{
+    QString str;
+    CParam *pParam;
+    float bestCirclePercentage = 0.9f;
+    float nMinCircleRadius = 50;// nLow;
+    float nMaxCircleRadius = 100;// nHigh;
+    if (pData != nullptr)
+    {
+        pParam = pData->getParam(("Roundness accuracy rate"));
+        if (pParam)
+            bestCirclePercentage = pParam->Value.toDouble() / 100.0;
+        if (bestCirclePercentage == 0)
+            bestCirclePercentage = 0.9f;
+        pParam = pData->getParam(("Minimum circle radius"));
+        if (pParam)
+            nMinCircleRadius = pParam->Value.toDouble();
+        str.sprintf(("Maximum circle radius"));
+        pParam = pData->getParam(str);
+        if (pParam)
+            nMaxCircleRadius = pParam->Value.toDouble();
+    }
+
+    float iBestCP = bestCirclePercentage;
+    Mat grayImg = Mat(grayImgIn.size(), CV_8UC1);
+    CBlobResult blobs = CBlobResult(grayImgIn);
+    int nBlobs = blobs.GetNumBlobs();
+    for (int i = 0; i < nBlobs; i++)	// 여러개의 Blob이 있을때 한개씩 뽑아서 RANSAC을 돌린다.
+    {
+        CBlob *p = blobs.GetBlob(i);
+        grayImg = Mat::zeros(grayImgIn.size(), CV_8UC1);
+        p->FillBlob(grayImg, CVX_WHITE);	// Draw the filtered blobs as white.
+
+        int nGaussian = 7;
+        try {
+            cv::GaussianBlur(grayImg, grayImg, cv::Size(nGaussian,nGaussian), 0);
+        } catch (...) {
+            qDebug() << "Error Find_RANSAC_Circle:grayImg cvSmooth()";
+        }
+
+        //RANSAC
+        cv::Mat canny;
+        cv::Mat mask;
+        float canny1 = 100;
+        float canny2 = 200;
+        cv::Canny(grayImg, canny, canny1, canny2);
+        mask = canny;
+
+        std::vector<cv::Point2f> edgePositions;
+        edgePositions = getPointPositions(mask);
+
+        // create distance transform to efficiently evaluate distance to nearest edge
+        cv::Mat dt;
+        cv::distanceTransform(255 - mask, dt, cv::DIST_L1, 3);
+        int maxNrOfIterations = edgePositions.size();
+    again:
+        RANSACIRCLE rbest;
+        rbest.cPerc = 0.0;
+        rbest.center.x = 0;
+        for (int its = 0; its < maxNrOfIterations; ++its)
+        {
+            unsigned int idx1 = rand() % edgePositions.size();
+            unsigned int idx2 = rand() % edgePositions.size();
+            unsigned int idx3 = rand() % edgePositions.size();
+
+            // we need 3 different samples:
+            if (idx1 == idx2) continue;
+            if (idx1 == idx3) continue;
+            if (idx3 == idx2) continue;
+
+            // create circle from 3 points:
+            cv::Point2f center; float radius;
+            getCircle(edgePositions[idx1], edgePositions[idx2], edgePositions[idx3], center, radius);
+            if (nMinCircleRadius > 0 && nMaxCircleRadius > 0) {
+                if (nMinCircleRadius > radius) continue;
+                if (nMaxCircleRadius < radius) continue;
+            }
+
+            // inlier set unused at the moment but could be used to approximate a (more robust) circle from alle inlier
+            std::vector<cv::Point2f> inlierSet;
+
+            //verify or falsify the circle by inlier counting:
+            float cPerc = verifyCircle(dt, center, radius, inlierSet);
+
+            // update best circle information if necessary
+            cv::Rect rect = cv::Rect(cv::Point(center.x - radius, center.y - radius), cv::Point(center.x + radius, center.y + radius));
+            // circle 영역안에 blob center가 포함되어야한다.
+            if (rect.contains(p->getCenter()))
+            {
+                RANSACIRCLE rclc;
+                rclc.cPerc = cPerc;
+                rclc.center = center;
+                rclc.radius = radius;
+                if (rbest.cPerc < rclc.cPerc) {
+                    rbest = rclc;
+                }
+                if (rclc.cPerc > iBestCP) {
+                    vecRansicCircle.push_back(rclc);
+                }
+            }
+        }
+        if (vecRansicCircle.size() == 0) {
+            iBestCP = iBestCP - 0.05;
+            if (iBestCP > 0.2) // 0.1
+                goto again;
+        }
+    }
+
+    return 0;
+}
+

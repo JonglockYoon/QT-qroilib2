@@ -41,6 +41,8 @@ typedef enum _tagInspectType
     _Inspect_BarCode,
     _Inspect_Line_Measurement,
     _Inspect_Label_Detect,
+    _Inspect_Area_Segment,
+    _Inspect_Roi_Circle_Hole,
     _Inspect_Roi_End,			// 영역 마지막
 
     ///////////////////////////////////////////////////////////

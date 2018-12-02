@@ -120,7 +120,7 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Roi_Corner,  CParam(_PostProcessValue1,  ("Expansion 2"), _IntValue, ("0")),	// 1 : Dilate - 팽창연산
     //_Inspect_Roi_Corner,  CParam(_LightValue, ("Light"), _IntValue, ("0")),
 
-    //_Inspect_Teseract, CParam(_ProcessValue1, _T("Type"), _ComboValue, _T("English")),
+    //_Inspect_Teseract, CParam(_ProcessValue1, ("Type"), _ComboValue, ("English")),
     _Inspect_Teseract, CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("150")),
     _Inspect_Teseract, CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("255")),
     //_Inspect_Teseract, CParam(_ProcessValue1, ("Min Size Y"), _IntValue, ("100")),
@@ -174,6 +174,17 @@ Qroilib::ParamTable paramTable[] = {
     _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("-1")),
     _Inspect_Line_Measurement, CParam(_ProcessValue1, ("Interval"), _IntValue, ("7")),
 
+    _Inspect_Area_Segment, CParam(_ProcessValue1, ("Method"), _ComboValue, ("0"), ("Watershed")),
+
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue1, ("Low Threshold"), _IntValue, ("0")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue1, ("High Threshold"), _IntValue, ("70")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue1, ("Noise out 1"), _IntValue, ("-3")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue1, ("Noise out 2"), _IntValue, ("3")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue1, ("Noise out 3"), _IntValue, ("-3")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue2, ("Roundness accuracy rate"), _DoubleValue, ("70.0")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue2, ("Minimum circle radius"), _DoubleValue, ("30.0")),
+    _Inspect_Roi_Circle_Hole, CParam(_ProcessValue2, ("Maximum circle radius"), _DoubleValue, ("60.0")),
+
     _Inspect_Type_End,  CParam(_FilterValue, (""), _IntValue, ("")), // 반드시 있어야한다.
 };
 
@@ -214,6 +225,8 @@ void CRecipeData::InitParamData()
     m_sInspList[_Inspect_BarCode].sprintf(("BarCode"));
     m_sInspList[_Inspect_Line_Measurement].sprintf(("Line Measurement"));
     m_sInspList[_Inspect_Label_Detect].sprintf(("Label Detect"));
+    m_sInspList[_Inspect_Area_Segment].sprintf(("Area Segment"));
+    m_sInspList[_Inspect_Roi_Circle_Hole].sprintf(("Circle Hole"));
 
 
     m_sInspList[_Inspect_Point_Coordnation].sprintf(("Point"));

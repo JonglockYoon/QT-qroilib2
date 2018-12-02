@@ -969,7 +969,7 @@ void MainWindow::DevLogSave(string strMsg, ...)
             str[len - 1] = 0;
         }
 
-        //TRACE1(_T("DevLog: %s\n"), str);
+        //TRACE1(("DevLog: %s\n"), str);
 
         QString strMsg;
         string m_strFileName;
