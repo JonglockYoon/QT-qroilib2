@@ -2889,6 +2889,10 @@ int CImgProcEngine::SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiO
     pParam = pData->getParam(("thinningType"));
     if (pParam)
        thinningType = (int)pParam->Value.toDouble();
+    int interval = 7;
+    pParam = pData->getParam(("Interval"));
+    if (pParam)
+       interval = (int)pParam->Value.toDouble();
 
     NoiseOut(pData, croppedImage);
 
@@ -2949,10 +2953,10 @@ int CImgProcEngine::SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiO
                     e->p1 = it1.pos();
                     break;
                 }
-                 Point pt = it1.pos();
-                 mat.at<uchar>(pt.y, pt.x) = 128;
-                 it1++;
-                 cnt++;
+                Point pt = it1.pos();
+                //mat.at<uchar>(pt.y, pt.x) = 128;
+                it1++;
+                cnt++;
             }
             LineIterator it2(mat, e->center, e->second, 8);
             while(bounds.contains(it2.pos())) {
@@ -2961,10 +2965,10 @@ int CImgProcEngine::SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiO
                     e->p2 = it2.pos();
                     break;
                 }
-                 Point pt = it2.pos();
-                 mat.at<uchar>(pt.y, pt.x) = 128;
-                 it2++;
-                 cnt++;
+                Point pt = it2.pos();
+                //mat.at<uchar>(pt.y, pt.x) = 128;
+                it2++;
+                cnt++;
             }
             cnt--;
             e->len = cnt; // pixel count
@@ -2985,7 +2989,13 @@ int CImgProcEngine::SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiO
         qDebug() << str;
         theMainWindow->DevLogSave(str.toLatin1().data());
 
+
+        for (int i=0; i<vecLineIt.size(); i=i+interval) {
+            ElemLineIt *e = &vecLineIt[i];
+            line( mat, e->p1, e->p2, CV_RGB(221,221,221), 1, 8 );
+        }
     }
+
 
     if (m_bSaveEngineImg)
     {
@@ -2994,6 +3004,137 @@ int CImgProcEngine::SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiO
     }
     theMainWindow->outWidget("LineMeasurement", mat);
 
+    return 0;
+}
+
+int CImgProcEngine::OneLineMeasurement(cv::Mat& mat, vector<Point>& cone, RoiObject *pData, vector<ElemLineIt> &vecLineIt)
+{
+    ElemLineIt e1;
+    int rst = -1;
+
+    const int llen = 512;//13;
+//    int interval = 7;
+//    CParam *pParam = pData->getParam(("Interval"));
+//    if (pParam)
+//       interval = (int)pParam->Value.toDouble();
+    const int interval = 1;
+
+//    int size1 = 0;
+//    int size2 = 99999;
+//    pParam = pData->getParam(("Start"));
+//    if (pParam)
+//       size1 = (int)pParam->Value.toDouble();
+//    pParam = pData->getParam(("End"));
+//    if (pParam)
+//       size2 = (int)pParam->Value.toDouble();
+
+    int size = cone.size();
+    for (int i = 0; i < size-interval; i=i+interval)
+    {
+//        if (i >= size1 && i < size2) {
+//            static int ii = 0;
+//            ii++;
+//        }
+//        else continue;
+
+        float x0 = cone[i+interval/2].x;
+        float y0 = cone[i+interval/2].y;
+
+        vector<double> vAngle;
+        vAngle.clear();
+        double dAngle = 0;
+        int mid = interval / 2;
+        for (int j=i; j<i+interval; j++) {
+            if (cone.size() <= j+2)
+                break;
+            float x1 = cone[j].x;
+            float y1 = cone[j].y;
+            float x2 = cone[j+2].x;
+            float y2 = cone[j+2].y;
+
+            double d1 = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
+            double d2 = sqrt(pow(cone[j+1].x - x1, 2) + pow(cone[j+1].y - y1, 2));
+            //되돌아 나오는 꼭지점 처리를 위함.
+            if (d1 < 3.0 && d2 >= 3.0)
+            {
+                mid = vAngle.size();
+                x1 = x0 = cone[j+1].x;
+                y1 = y0 = cone[j+1].y;
+            }
+            dAngle = ((double)atan2(y2 - y1, x2 - x1) * 180.0f / PI);
+            vAngle.push_back(dAngle);
+            //line( m, Point(x1,y1), Point(x2,y2), CV_RGB(221,221,221), 1, 8 );
+        }
+        if (vAngle.size() == 0)
+            continue;
+
+        if (mid != (interval / 2)) {
+            std::stable_sort(vAngle.begin(), vAngle.end(), [](const double lhs, const double rhs)->bool {
+                return lhs < rhs;
+            });
+        }
+        //dAngle = 0;
+        dAngle = vAngle[mid];
+        //qDebug() << "angle1: " << dAngle;
+        MakeOneElemLine(Point(x0,y0), dAngle, e1);
+        AppendOneLine(mat, vecLineIt, e1, interval, dAngle);
+
+        // 최종 종단점 처리를 위해 필요.
+        if (i+interval >= size-interval) {
+            x0 = cone[size-1].x;
+            y0 = cone[size-1].y;
+            size = vAngle.size();
+            dAngle = vAngle[size-1];
+            MakeOneElemLine(Point(x0,y0), dAngle, e1);
+            AppendOneLine(mat, vecLineIt, e1, interval, dAngle);
+        }
+    }
+
+    return rst;
+}
+
+void CImgProcEngine::MakeOneElemLine(Point cen, double dAngle, ElemLineIt &elem)
+{
+    const int llen = 512;//13;
+    double a2 = (dAngle + 90);
+    double s = sin((a2)*CV_PI/180);
+    double c = cos((a2)*CV_PI/180);
+    Point p2(cen.x+c*llen, cen.y+s*llen);
+    elem.center = Point(cen.x,cen.y);
+    elem.first = p2;
+
+    a2 = (dAngle - 90);
+    s = sin((a2)*CV_PI/180);
+    c = cos((a2)*CV_PI/180);
+    p2 = Point(cen.x+c*llen, cen.y+s*llen);
+    elem.second = p2;
+}
+
+int CImgProcEngine::AppendOneLine(cv::Mat& mat, vector<ElemLineIt> &vecLineIt, ElemLineIt ee, int interval, double dAngle)
+{
+    ElemLineIt e1;
+    int size = vecLineIt.size();
+    // interval 보다 거리가 멀면 중간에 같은 각도의 라인을 추가한다.
+    ElemLineIt le = ee;
+    if (size > 0)
+        le.center = vecLineIt[size-1].center;
+    double d = sqrt(pow(le.center.x - ee.center.x, 2) + pow(le.center.y - ee.center.y, 2));
+    if (d > interval) {
+        LineIterator it(mat, le.center, ee.center, 8);
+        vector<Point> buf(it.count);
+        for(int i = 0; i < it.count; i++, ++it) {
+            buf[i] = it.pos();
+        }
+        for(int i=interval; i<it.count; i=i+interval) {
+            MakeOneElemLine(buf[i], dAngle, e1);
+            double d1 = sqrt(pow(e1.first.x - e1.second.x, 2) + pow(e1.first.y - e1.second.y, 2));
+            if (d1 > 3)
+                vecLineIt.push_back(e1);
+        }
+    }
+    double d1 = sqrt(pow(ee.first.x - ee.second.x, 2) + pow(ee.first.y - ee.second.y, 2));
+    if (d1 > 3)
+        vecLineIt.push_back(ee);
     return 0;
 }
 
@@ -3286,137 +3427,6 @@ double CImgProcEngine::HistEMD(cv::Mat& ref_hsv, cv::Mat& target, int dims)
      //qDebug() << "similarity " << perc<< "%%";
      return emd;
 
-}
-
-
-int CImgProcEngine::OneLineMeasurement(cv::Mat& mat, vector<Point>& cone, RoiObject *pData, vector<ElemLineIt> &vecLineIt)
-{
-    ElemLineIt e1;
-    int rst = -1;
-
-    const int llen = 512;//13;
-    int interval = 7;
-    CParam *pParam = pData->getParam(("Interval"));
-    if (pParam)
-       interval = (int)pParam->Value.toDouble();
-
-//    int size1 = 0;
-//    int size2 = 99999;
-//    pParam = pData->getParam(("Start"));
-//    if (pParam)
-//       size1 = (int)pParam->Value.toDouble();
-//    pParam = pData->getParam(("End"));
-//    if (pParam)
-//       size2 = (int)pParam->Value.toDouble();
-
-    int size = cone.size();
-    for (int i = 0; i < size-interval; i=i+interval)
-    {
-//        if (i >= size1 && i < size2) {
-//            static int ii = 0;
-//            ii++;
-//        }
-//        else continue;
-
-        float x0 = cone[i+interval/2].x;
-        float y0 = cone[i+interval/2].y;
-
-        vector<double> vAngle;
-        vAngle.clear();
-        double dAngle = 0;
-        int mid = interval / 2;
-        for (int j=i; j<i+interval; j++) {
-            if (cone.size() <= j+2)
-                break;
-            float x1 = cone[j].x;
-            float y1 = cone[j].y;
-            float x2 = cone[j+2].x;
-            float y2 = cone[j+2].y;
-
-            double d1 = sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
-            double d2 = sqrt(pow(cone[j+1].x - x1, 2) + pow(cone[j+1].y - y1, 2));
-            //되돌아 나오는 꼭지점 처리를 위함.
-            if (d1 < 3.0 && d2 >= 3.0)
-            {
-                mid = vAngle.size();
-                x1 = x0 = cone[j+1].x;
-                y1 = y0 = cone[j+1].y;
-            }
-            dAngle = ((double)atan2(y1 - y2, x1 - x2) * 180.0f / PI);
-            vAngle.push_back(dAngle);
-            //line( m, Point(x1,y1), Point(x2,y2), CV_RGB(221,221,221), 1, 8 );
-        }
-        if (vAngle.size() == 0)
-            continue;
-
-        if (mid != (interval / 2)) {
-            std::stable_sort(vAngle.begin(), vAngle.end(), [](const double lhs, const double rhs)->bool {
-                return lhs < rhs;
-            });
-        }
-        //dAngle = 0;
-        dAngle = vAngle[mid];
-        //qDebug() << "angle1: " << dAngle;
-        MakeOneElemLine(Point(x0,y0), dAngle, e1);
-        AppendOneLine(mat, vecLineIt, e1, interval, dAngle);
-
-        // 최종 종단점 처리를 위해 필요.
-        if (i+interval >= size-interval) {
-            x0 = cone[size-1].x;
-            y0 = cone[size-1].y;
-            size = vAngle.size();
-            dAngle = vAngle[size-1];
-            MakeOneElemLine(Point(x0,y0), dAngle, e1);
-            AppendOneLine(mat, vecLineIt, e1, interval, dAngle);
-        }
-    }
-
-    return rst;
-}
-
-void CImgProcEngine::MakeOneElemLine(Point cen, double dAngle, ElemLineIt &elem)
-{
-    const int llen = 512;//13;
-    double a2 = (dAngle + 90);
-    double s = sin((a2)*CV_PI/180);
-    double c = cos((a2)*CV_PI/180);
-    Point p2(cen.x+c*llen, cen.y+s*llen);
-    elem.center = Point(cen.x,cen.y);
-    elem.first = p2;
-
-    a2 = (dAngle - 90);
-    s = sin((a2)*CV_PI/180);
-    c = cos((a2)*CV_PI/180);
-    p2 = Point(cen.x+c*llen, cen.y+s*llen);
-    elem.second = p2;
-}
-
-int CImgProcEngine::AppendOneLine(cv::Mat& mat, vector<ElemLineIt> &vecLineIt, ElemLineIt ee, int interval, double dAngle)
-{
-    ElemLineIt e1;
-    int size = vecLineIt.size();
-    // interval 보다 거리가 멀면 중간에 같은 각도의 라인을 추가한다.
-    ElemLineIt le = ee;
-    if (size > 0)
-        le.center = vecLineIt[size-1].center;
-    double d = sqrt(pow(le.center.x - ee.center.x, 2) + pow(le.center.y - ee.center.y, 2));
-    if (d > interval) {
-        LineIterator it(mat, le.center, ee.center, 8);
-        vector<Point> buf(it.count);
-        for(int i = 0; i < it.count; i++, ++it) {
-            buf[i] = it.pos();
-        }
-        for(int i=interval; i<it.count; i=i+interval) {
-            MakeOneElemLine(buf[i], dAngle, e1);
-            double d1 = sqrt(pow(e1.first.x - e1.second.x, 2) + pow(e1.first.y - e1.second.y, 2));
-            if (d1 > 3)
-                vecLineIt.push_back(e1);
-        }
-    }
-    double d1 = sqrt(pow(ee.first.x - ee.second.x, 2) + pow(ee.first.y - ee.second.y, 2));
-    if (d1 > 3)
-        vecLineIt.push_back(ee);
-    return 0;
 }
 
 int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, RoiObject *pData, QRectF rect)
