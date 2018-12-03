@@ -189,7 +189,7 @@ int CImgProcEngine::GetAlignPtWithMask(RoiObject* pData, cv::Mat graySearchImg)
     // mask image
     char strTemp[256];
     sprintf(strTemp, ("%s\\TeachingData\\%s\\%s.jpg"), gCfg.RootPath.toLatin1().data(), gCfg.m_sLastRecipeName.toLatin1().data(), ("maskimage"));
-    cv::Mat maskImg = imread(strTemp, IMREAD_GRAYSCALE);
+    cv::Mat maskImg = imread(strTemp, cv::IMREAD_GRAYSCALE | cv::IMREAD_IGNORE_ORIENTATION);
 
     DocumentView* v = theMainWindow->currentView();
     // mask image
@@ -351,7 +351,7 @@ int CImgProcEngine::TowPointAlignImage(cv::Mat gray)
         //align(mask) image rotate.
         char strTemp[256];
         sprintf(strTemp, ("%s\\TeachingData\\%s\\%s.jpg"), gCfg.RootPath.toLatin1().data(), gCfg.m_sLastRecipeName.toLatin1().data(), ("maskimage"));
-        cv::Mat maskImg = imread(strTemp, IMREAD_GRAYSCALE);
+        cv::Mat maskImg = imread(strTemp, cv::IMREAD_GRAYSCALE | cv::IMREAD_IGNORE_ORIENTATION);
 
         //dTheta -= 1.0;
         RotateImage(maskImg, dTheta*-1.0);
@@ -2992,7 +2992,7 @@ int CImgProcEngine::SingleROILineMeasurement(cv::Mat croppedImage, Qroilib::RoiO
 
         for (int i=0; i<vecLineIt.size(); i=i+interval) {
             ElemLineIt *e = &vecLineIt[i];
-            line( mat, e->p1, e->p2, CV_RGB(221,221,221), 1, 8 );
+            cv::line( mat, e->p1, e->p2, CV_RGB(221,221,221), 1, 8 );
         }
     }
 

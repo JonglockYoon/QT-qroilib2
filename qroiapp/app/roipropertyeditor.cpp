@@ -376,7 +376,7 @@ void RoiPropertyEditor::clickedSaveTemplateSlot()
         image = image.scaled(64, 64, Qt::KeepAspectRatio);
         labelImageDisplay->setPixmap(QPixmap::fromImage(image));
 
-        mObject->templateMat = imread(strTemp.toStdString().c_str(), IMREAD_COLOR);
+        mObject->templateMat = imread(strTemp.toStdString().c_str(), cv::IMREAD_COLOR | cv::IMREAD_IGNORE_ORIENTATION);
     }
 }
 
@@ -441,7 +441,7 @@ void RoiPropertyEditor::slotComboActivated()
     if (name.isEmpty())
         name = "noname";
     strTemp = QString("%1/TeachingData/%2/%3.bmp").arg(gCfg.RootPath).arg(gCfg.m_sLastRecipeName).arg(name);
-    mObject->templateMat = imread(strTemp.toStdString().c_str(), IMREAD_COLOR);
+    mObject->templateMat = imread(strTemp.toStdString().c_str(), cv::IMREAD_COLOR | cv::IMREAD_IGNORE_ORIENTATION);
 #endif
 
     ObjectListSet();

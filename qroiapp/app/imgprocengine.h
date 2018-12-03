@@ -108,7 +108,7 @@ public:
     int SingleROIAreaSegment(cv::Mat croppedImage, Qroilib::RoiObject *pData, QRectF rect);
     int SingleROICircleHole(cv::Mat croppedImage, Qroilib::RoiObject* pData, QRectF rect);
 
-    int Find_RANSAC_Circle(Mat grayImg, Qroilib::RoiObject *pData, vector<RANSACIRCLE> &vecRansicCircle);
+    int Find_RANSAC_Circle(cv::Mat grayImg, Qroilib::RoiObject *pData, std::vector<RANSACIRCLE> &vecRansicCircle);
     float verifyCircle(cv::Mat dt, cv::Point2f center, float radius, std::vector<cv::Point2f> & inlierSet);
     inline void getCircle(cv::Point2f& p1, cv::Point2f& p2, cv::Point2f& p3, cv::Point2f& center, float& radius);
     std::vector<cv::Point2f> getPointPositions(cv::Mat binaryImage);

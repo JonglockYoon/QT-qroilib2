@@ -949,7 +949,7 @@ void MainWindow::setReadImage()
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QTimer::singleShot(1, [=] {
         QImage img;
-        cv::Mat m = cv::imread(fileName.toLocal8Bit().toStdString().c_str(), cv::IMREAD_COLOR);
+        cv::Mat m = cv::imread(fileName.toLocal8Bit().toStdString().c_str(), cv::IMREAD_COLOR | cv::IMREAD_IGNORE_ORIENTATION);
         mat_to_qimage(m, img);
         if (v) {
             v->mRoi->setWidth(img.width());
