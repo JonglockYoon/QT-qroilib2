@@ -16,7 +16,6 @@ Windows : QT-5.9.0
 <thead>
 <tr>
 <th>Naver Blog Post</th>
-<th align="left"></th>
 </tr>
 </thead>
 <tbody>
