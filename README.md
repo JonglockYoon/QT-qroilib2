@@ -19,6 +19,13 @@ Windows : QT-5.9.0
 </tr>
 </thead>
 <tbody>
+
+<tr>
+<td><a href="https://blog.naver.com/jerry1455/221410819822" rel="nofollow">qroilib2 OpenCV 히스토그램(Histogram) graph</a></td>
+</tr>
+<tr>
+<td><a href="https://blog.naver.com/jerry1455/221410626419" rel="nofollow">qroilib2 CircleFit using RANSAC</a></td>
+</tr>
 <tr>
 <td><a href="https://blog.naver.com/jerry1455/221409799446" rel="nofollow">OpenCV-4.0 QRCodeDetector 와 QZXing 비교</a></td>
 </tr>
