@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="563" height="188" roiwidth="1" roiheight="1" nextobjectid="1">
+<roimap version="1.0" orientation="orthogonal" renderorder="right-down" width="2592" height="1944" roiwidth="1" roiheight="1" nextobjectid="1">
  <objectgroup name="channel1" x="-1" y="-1">
-  <object id="1" name="noname1202204740" x="0.952623" y="0.166667" width="557.284" height="187.667">
+  <object id="1" name="noname1203225001" x="520.331" y="403.802" width="1539.14" height="108">
    <rectangle/>
-   <param InspectType="507">
-    <param00 steptype="1" name="thinningType" valuetype="4" value="0" detail="ZHANGSUEN,GUOHALL"/>
-    <param01 steptype="1" name="Noise out 1" valuetype="1" value="1" detail=""/>
-    <param02 steptype="1" name="Noise out 2" valuetype="1" value="-1" detail=""/>
-    <param03 steptype="1" name="Interval" valuetype="1" value="10" detail=""/>
+   <param InspectType="505">
+    <param00 steptype="1" name="Low Threshold" valuetype="1" value="100" detail=""/>
+    <param01 steptype="1" name="High Threshold" valuetype="1" value="255" detail=""/>
+    <param02 steptype="1" name="Max Size Y" valuetype="1" value="200" detail=""/>
+    <param03 steptype="1" name="Noise out 1" valuetype="1" value="1" detail=""/>
+    <param04 steptype="1" name="Noise out 2" valuetype="1" value="-1" detail=""/>
+    <param05 steptype="1" name="Expansion 1" valuetype="1" value="0" detail=""/>
+    <param06 steptype="1" name="Expansion 2" valuetype="1" value="0" detail=""/>
+    <param07 steptype="2" name="Noise out 1" valuetype="1" value="0" detail=""/>
+    <param08 steptype="2" name="Noise out 2" valuetype="1" value="0" detail=""/>
+    <param09 steptype="2" name="Expansion 1" valuetype="1" value="0" detail=""/>
+    <param10 steptype="2" name="Expansion 2" valuetype="1" value="0" detail=""/>
+    <param11 steptype="3" name="Re Align" valuetype="4" value="0" detail="No,Yes"/>
+    <param12 steptype="3" name="Size(%)" valuetype="1" value="0" detail=""/>
+    <param13 steptype="3" name="Smooth Use" valuetype="4" value="1" detail="No,Yes"/>
+    <param14 steptype="3" name="Smooth method" valuetype="4" value="1" detail="BLUR,GAUSSIAN,MEDIAN,BILATERAL "/>
+    <param15 steptype="3" name="Smooth size" valuetype="1" value="7" detail=""/>
    </param>
   </object>
  </objectgroup>

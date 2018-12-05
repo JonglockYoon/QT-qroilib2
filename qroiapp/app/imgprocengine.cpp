@@ -2681,86 +2681,106 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
     }
 
     CParam *pParam;
-    double dSizeX = 1.0, dSizeY = 1.0;
-    pParam = pData->getParam(("Size X(%)"));
+    double dSize = 1.0;
+    pParam = pData->getParam(("Size(%)"));
     if (pParam)
-        dSizeX = (pParam->Value.toDouble()) / 100.0;
-    pParam = pData->getParam(("Size Y(%)"));
+        dSize = (pParam->Value.toDouble()) / 100.0;
+
+    int bRealign = 0;
+    pParam = pData->getParam(("Re Align"));
     if (pParam)
-        dSizeY = (pParam->Value.toDouble()) / 100.0;
+        bRealign = (int)(pParam->Value.toDouble());
 
-    cv::Size sz = cv::Size(croppedImage.cols * dSizeX, croppedImage.rows * dSizeY);
-    cv::Mat MatIn = cv::Mat(sz, 8, 1);
-    cv::resize(croppedImage, MatIn, MatIn.size(), dSizeX, dSizeY, cv::INTER_CUBIC);
+    cv::Mat im = croppedImage;
 
-    Smooth(pData, MatIn, 220);
+    double maxy = 0.00001;
+    if (bRealign)
+    {
+        bitwise_not(im, im);
+        CBlobResult blobs;
+        blobs = CBlobResult(im);
+        int nBlobs = blobs.GetNumBlobs();
+        typedef struct {
+            cv::Point c;
+            int seq;
+            CBlob *p;
+        } BCENTER;
+        std::vector<BCENTER> vecCenter;
+        for (int i = 0; i < nBlobs; i++) {
+            CBlob *p = blobs.GetBlob(i);
+            BCENTER center;
+            center.c = p->getCenter();
+            center.seq = i;
+            center.p = p;
+            vecCenter.push_back(center);
+        }
+        std::stable_sort(vecCenter.begin(), vecCenter.end(), [](const BCENTER lhs, const BCENTER rhs)->bool {
+            return lhs.c.x < rhs.c.x;
+        });
+        Mat result = cv::Mat::zeros(cv::Size(im.cols + nBlobs * 12, im.rows), im.type());
+        int wpos = 0;
+        for (int i = 0; i < nBlobs; i++) {
+            BCENTER *p = &vecCenter[i];
+            cv::Rect rect = p->p->GetBoundingBox();
+            if (rect.height > maxy)
+                maxy = rect.height;
+            wpos = wpos + 12;
+            p->p->FillBlob(result, CVX_WHITE, wpos - rect.x, 0, true);
+            wpos += rect.width;
+        }
+        bitwise_not(result, result);
 
-    if (gCfg.m_bSaveEngineImg) {
-        str.sprintf(("%03d_InputOCR.BMP"), 300);
-        SaveOutImage(MatIn, pData, str);
+        str.sprintf(("%03d_reAlign.BMP"), 300);
+        SaveOutImage(result, pData, str);
+
+        im = result;
     }
 
-    // Open input image using OpenCV
-    cv::Mat im = MatIn;
-
-    // Set image data
-    tessApi->SetImage(im.data, im.cols, im.rows, 1, im.step); // BW color
-
-    // Run Tesseract OCR on image
-    char* rst = tessApi->GetUTF8Text();
-    //string outText = string();
-
-    // print recognized text
-    //cout << outText << endl; // Destroy used object and release memory ocr->End();
-
-    std::string sstr = rst;
-    size_t endpos = sstr.find_last_not_of(" \t\r\n"); // rtrim
-      if(std::string::npos != endpos )
-        sstr = sstr.substr(0, endpos+1);
-    size_t startpos = sstr.find_first_not_of(" \t\r\n"); // ltrim
-      if(std::string::npos != startpos )
-        sstr = sstr.substr(startpos);
-
-    qDebug() << "OCR Text:" << sstr.c_str();
-    m_DetectResult.pt = cv::Point(0,0);
-    strcpy(m_DetectResult.str, sstr.c_str());
-    pData->m_vecDetectResult.push_back(m_DetectResult);
-
-//    CvFont font;
-//    cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 0.3, 0.3, 0, 1, CV_AA);
-
-//    cv::Rectangle(outImg, cv::Point(0,0), cv::Point(outImg.cols,10), cv::Scalar(255, 255, 255), cv::FILLED);
-//    cvPutText(outImg, text, cvPoint(10, 10), &font, cv::Scalar(128, 128, 128));
-
-    //QString str;
-    str.sprintf("OCR Text:%s", sstr.c_str());
-    theMainWindow->DevLogSave(str.toLatin1().data());
-
-
-    bitwise_not(im, im);
-    CBlobResult blobs;
-    blobs = CBlobResult(im);
-    int nBlobs = blobs.GetNumBlobs();
-    Mat result = cv::Mat::zeros(cv::Size(im.rows*nBlobs, im.rows), im.type());
-    int wpos = 0;
-    for (int i = 0; i < nBlobs; i++) {
-        CBlob *p = blobs.GetBlob(i);
-        cv::Rect rect = p->GetBoundingBox();
-        wpos = wpos + 12;
-        p->FillBlob(result, CVX_WHITE, p->MinX()*-1 + wpos, 0, true);
-        wpos += rect.width;
+    if (dSize == 0) {
+        bitwise_not(im, im);
+        CBlobResult blobs;
+        blobs = CBlobResult(im);
+        int nBlobs = blobs.GetNumBlobs();
+        for (int i = 0; i < nBlobs; i++) {
+            CBlob *p = blobs.GetBlob(i);
+            cv::Rect rect = p->GetBoundingBox();
+            if (rect.height > maxy)
+                maxy = rect.height;
+        }
+        bitwise_not(im, im);
+        dSize = 30.0 / maxy;
     }
-    bitwise_not(result, result);
+
+    cv::Size sz = cv::Size(im.cols * dSize, im.rows * dSize);
+    cv::Mat mat2 = cv::Mat(sz, im.type());
+    cv::resize(im, mat2, mat2.size(), 0, 0, cv::INTER_CUBIC);
+
+    Smooth(pData, mat2, 220);
+
     str.sprintf(("%03d_InputOCR.BMP"), 400);
-    SaveOutImage(result, pData, str);
+    SaveOutImage(mat2, pData, str);
 
     //init_tess_failed = tessApi->Init("./tessdata", "eng",  OEM_LSTM_ONLY);
     //tessApi->SetPageSegMode(tesseract::PSM_AUTO);
 
-    tessApi->SetImage(result.data, result.cols, result.rows, 1, result.step); // BW color
-    char* rst1 = tessApi->GetUTF8Text();
-    qDebug() << ":" << QString(rst1);
+    tessApi->SetImage(mat2.data, mat2.cols, mat2.rows, 1, mat2.step); // BW color
+    char* rst2 = tessApi->GetUTF8Text();
+    //qDebug() << ":" << CString(rst1);
 
+    if (rst2 != nullptr)
+    {
+        std::string sstr2 = rst2;
+        size_t endpos2 = sstr2.find_last_not_of(" \t\r\n"); // rtrim
+        if (std::string::npos != endpos2)
+            sstr2 = sstr2.substr(0, endpos2 + 1);
+        size_t startpos2 = sstr2.find_first_not_of(" \t\r\n"); // ltrim
+        if (std::string::npos != startpos2)
+            sstr2 = sstr2.substr(startpos2);
+        str.sprintf(("OCR Text2:%s"), sstr2.c_str());
+        //g_cLog->AddLog(str, _LOG_LIST_SYS);
+        theMainWindow->DevLogSave(str.toLatin1().data());
+
+    }
 
 
     if (tessApi)
