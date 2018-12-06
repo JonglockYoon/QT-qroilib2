@@ -1462,26 +1462,46 @@ int CImgProcEngine::SinglePattFeatureMatch(cv::Mat croppedImage, RoiObject *pDat
         sift(img_object, cv::Mat(), keypoints_object, descriptors_object);
         sift(img_scene, cv::Mat(), keypoints_scene, descriptors_scene);
 
-        cv::BFMatcher matcher;
-        matcher.knnMatch(descriptors_object, descriptors_scene, m_knnMatches, 2);
-    }
-    else if (nMethod == 0) { // SURF distance:5, MaxSize:200
-        SURFDetector surf(dParam1); //  nParam1=800
-        surf(img_object, cv::Mat(), keypoints_object, descriptors_object);
-        surf(img_scene, cv::Mat(), keypoints_scene, descriptors_scene);
+		cv::BFMatcher matcher;
+		try {
+			matcher.knnMatch(descriptors_object, descriptors_scene, m_knnMatches, 2);
+		}
+		catch (...) {
+			//TRACE(_T("Error SIFT knnMatch"));
+			return -1;
+		}
+	}
 
-        cv::BFMatcher matcher;
-        matcher.knnMatch(descriptors_object, descriptors_scene, m_knnMatches, 2);
-    }
-    else if (nMethod == 2) { // ORB distance:5, MaxSize:200
-        ORBDetector orb(dParam1); // nParam1=2000
-        orb(img_object, cv::Mat(), keypoints_object, descriptors_object);
-        orb(img_scene, cv::Mat(), keypoints_scene, descriptors_scene);
 
-        cv::BFMatcher matcher(cv::NORM_HAMMING); // use cv::NORM_HAMMING2 for ORB descriptor with WTA_K == 3 or 4 (see ORB constructor)
-        matcher.knnMatch(descriptors_object, descriptors_scene, m_knnMatches, 2);
-    }
-    else return -1;
+	else if (nMethod == 0) { // SURF distance:5, MaxSize:200
+		SURFDetector surf(dParam1); //  nParam1=800
+		surf(img_object, cv::Mat(), keypoints_object, descriptors_object);
+		surf(img_scene, cv::Mat(), keypoints_scene, descriptors_scene);
+
+		cv::BFMatcher matcher;
+		try {
+			matcher.knnMatch(descriptors_object, descriptors_scene, m_knnMatches, 2);
+		}
+		catch (...) {
+			//TRACE(_T("Error SURF knnMatch"));
+			return -1;
+		}
+	}
+	else if (nMethod == 2) { // ORB distance:5, MaxSize:200
+		ORBDetector orb(dParam1); // nParam1=2000
+		orb(img_object, cv::Mat(), keypoints_object, descriptors_object);
+		orb(img_scene, cv::Mat(), keypoints_scene, descriptors_scene);
+
+		cv::BFMatcher matcher(cv::NORM_HAMMING); // use cv::NORM_HAMMING2 for ORB descriptor with WTA_K == 3 or 4 (see ORB constructor)
+		try {
+			matcher.knnMatch(descriptors_object, descriptors_scene, m_knnMatches, 2);
+		}
+		catch (...) {
+			//TRACE(_T("Error ORB knnMatch"));
+			return -1;
+		}
+	}
+	else return -1;
 
     for(int i = 0; i < min(img_scene.rows-1,(int) m_knnMatches.size()); i++) //THIS LOOP IS SENSITIVE TO SEGFAULTS
     {
@@ -1556,8 +1576,19 @@ int CImgProcEngine::SinglePattFeatureMatch(cv::Mat croppedImage, RoiObject *pDat
         qDebug() << "myContourAngle: " << myContourAngle;
         for (int i=0; i<4; i++) {
             qDebug() << corner[i].x << corner[i].y;
-        }
-    }
+		}
+
+		double d1 = sqrt(pow(pt1.x, 2) + pow(pt1.y, 2));
+		double d4 = sqrt(pow(pt4.x, 2) + pow(pt4.y, 2));
+		if (d1 > d4) {
+			if (m_bSaveEngineImg)
+			{
+				RotateImage(croppedImage, 180.0);
+                QString str; str.sprintf(("%d_Rotate.jpg"), 200);
+				SaveOutImage(croppedImage, pData, str);
+			}
+		}
+	}
 
     return 0;
 }
@@ -2119,6 +2150,19 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
         SaveOutImage(grayTemplateImg, pData, str);
     }
 
+
+    float dMatchingRate = 0.5f;
+    float dMatchShapesingRate = 0.7f;
+    if (pData != nullptr) {
+        CParam *pParam = pData->getParam("Pattern matching rate");
+        if (pParam)
+            dMatchingRate = (float)pParam->Value.toDouble() / 100.0f;
+    }
+    if (pData != nullptr) {
+        CParam *pParam = pData->getParam(("Shape matching rate"));
+        if (pParam)
+            dMatchShapesingRate = (float)pParam->Value.toDouble() / 100.0f;
+    }
     clock_t start_time1 = clock();
 
     cv::Size size = cv::Size(srect.width() - grayTemplateImg.cols + 1, srect.height() - grayTemplateImg.rows + 1);
@@ -2129,6 +2173,7 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
     grayTemplateImg.copyTo(g2);
 
     int nThresholdValue = 0;
+    int nFilterBlob = 0;
     CParam *pParam = pData->getParam(("High Threshold"));
     if (pParam)
         nThresholdValue = pParam->Value.toDouble();
@@ -2141,7 +2186,6 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
     NoiseOut(pData, g2, _ProcessValue2, 212);
     Expansion(pData, g2, _ProcessValue2, 213);
 
-    int nFilterBlob = 0;
     pParam = pData->getParam(("Filter blob"));
     if (pParam)
         nFilterBlob = (int)pParam->Value.toDouble();
@@ -2161,18 +2205,6 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
         SaveOutImage(g2, pData, ("227_TemplateImageCany.jpg"));
     }
 
-    float dMatchingRate = 0.5f;
-    float dMatchShapesingRate = 0.7f;
-    if (pData != nullptr) {
-        CParam *pParam = pData->getParam("Pattern matching rate");
-        if (pParam)
-            dMatchingRate = (float)pParam->Value.toDouble() / 100.0f;
-    }
-    if (pData != nullptr) {
-        CParam *pParam = pData->getParam(("Shape matching rate"));
-        if (pParam)
-            dMatchShapesingRate = (float)pParam->Value.toDouble() / 100.0f;
-    }
 
     dMatchShapes = 0.0;
     int nLoop = 0;
@@ -2251,16 +2283,9 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
                     str.sprintf(("Template Shape Match(succ) ===> : %.2f%%"), dMatchShapes);
                     theMainWindow->DevLogSave(str.toLatin1().data());
 
-//                    cvReleaseImage(&graySearchImg);
-//                    cvReleaseImage(&C);
-//                    cvReleaseImage(&g2);
-//                    cvReleaseMemStorage(&storage);
 
                     m_DetectResult.result = true; // OK
 
-                    //left_top.x += srect.left;
-                    //left_top.y += srect.top;
-                    //return (max*100);
                     break;
                 }
                 else {
@@ -2270,10 +2295,6 @@ double CImgProcEngine::TemplateMatch(RoiObject *pData, cv::Mat graySearchImgIn, 
                     break;
                 }
                 nLoop++;
-                //if (nLoop > 10) {
-                //	str.sprintf(("MatchShape failed"));
-                //	break;
-                //}
             } else {
                 str.sprintf(("TemplateMatch Match(succ) ===> : %.2f%%"), maxRate * 100);
                 theMainWindow->DevLogSave(str.toLatin1().data());
@@ -2681,10 +2702,13 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
     }
 
     CParam *pParam;
-    double dSize = 1.0;
+    double dSize = 0.0;
     pParam = pData->getParam(("Size(%)"));
-    if (pParam)
-        dSize = (pParam->Value.toDouble()) / 100.0;
+    if (pParam) {
+		double d = pParam->Value.toDouble();
+		if (d > 0)
+			dSize = d / 100.0;
+	}
 
     int bRealign = 0;
     pParam = pData->getParam(("Re Align"));
@@ -2708,6 +2732,9 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
         std::vector<BCENTER> vecCenter;
         for (int i = 0; i < nBlobs; i++) {
             CBlob *p = blobs.GetBlob(i);
+			cv::Rect rect = p->GetBoundingBox();
+			if (rect.width < 12 || rect.height < 16) // 최소 12x16이상 폰트만.
+				continue;
             BCENTER center;
             center.c = p->getCenter();
             center.seq = i;
@@ -2719,15 +2746,24 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
         });
         Mat result = cv::Mat::zeros(cv::Size(im.cols + nBlobs * 12, im.rows), im.type());
         int wpos = 0;
-        for (int i = 0; i < nBlobs; i++) {
-            BCENTER *p = &vecCenter[i];
-            cv::Rect rect = p->p->GetBoundingBox();
-            if (rect.height > maxy)
-                maxy = rect.height;
-            wpos = wpos + 12;
-            p->p->FillBlob(result, CVX_WHITE, wpos - rect.x, 0, true);
-            wpos += rect.width;
-        }
+		int oldx = 0;
+		int oldw = 0;
+		for (int i = 0; i < vecCenter.size(); i++) {
+			BCENTER *p = &vecCenter[i];
+			cv::Rect rect = p->p->GetBoundingBox();
+			if (rect.height > maxy)
+				maxy = rect.height;
+			wpos = wpos + 12;
+			double dNext = rect.x - oldx;
+			double dInter = (double)oldw*1.5;
+			if (dInter < dNext) { // 글자사이에 공백이 있으면.
+				wpos = wpos + rect.width;
+			}
+			oldx = rect.x;
+			oldw = rect.width;
+			p->p->FillBlob(result, CVX_WHITE, wpos - rect.x, 0, true);
+			wpos += rect.width;
+		}
         bitwise_not(result, result);
 
         str.sprintf(("%03d_reAlign.BMP"), 300);
@@ -2755,7 +2791,7 @@ int CImgProcEngine::SingleROIOCR(cv::Mat croppedImage, Qroilib::RoiObject *pData
     cv::Mat mat2 = cv::Mat(sz, im.type());
     cv::resize(im, mat2, mat2.size(), 0, 0, cv::INTER_CUBIC);
 
-    Smooth(pData, mat2, 220);
+	Smooth(pData, mat2, 320);
 
     str.sprintf(("%03d_InputOCR.BMP"), 400);
     SaveOutImage(mat2, pData, str);
@@ -3663,7 +3699,7 @@ int CImgProcEngine::SingleROILabelDetect(cv::Mat croppedImage, RoiObject *pData,
     if (iMaxIdx >= 0) {
         CBlob *p = blobs.GetBlob(iMaxIdx);
         cv::Point2f center = p->getCenter();
-        cv::circle(tmp, center, 10, CVX_BLICK, cv::FILLED);
+        cv::circle(tmp, center, 10, CVX_BLICK, cv::FILLED); // 빈공간.
     }
 
 
