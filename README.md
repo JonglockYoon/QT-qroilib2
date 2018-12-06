@@ -21,6 +21,9 @@ Windows : QT-5.9.0
 <tbody>
 
 <tr>
+<td><a href="https://blog.naver.com/jerry1455/221412511622" rel="nofollow">Tesseract OCR 4.0 학습</a></td>
+</tr>
+<tr>
 <td><a href="https://blog.naver.com/jerry1455/221410819822" rel="nofollow">qroilib2 OpenCV 히스토그램(Histogram) graph</a></td>
 </tr>
 <tr>
