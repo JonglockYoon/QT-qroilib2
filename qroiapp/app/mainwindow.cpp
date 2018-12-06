@@ -443,6 +443,7 @@ void MainWindow::SetCameraPause(int viewNumber, bool bPause)
             //v->mRoi->setHeight(480);
         }
     }
+    QThread::msleep(10);
 }
 
 void MainWindow::setGrayImage()

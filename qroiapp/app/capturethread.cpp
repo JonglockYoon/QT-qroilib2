@@ -61,8 +61,8 @@ bool CaptureThread::connectToCamera(int deviceNumber)
     // Open camera and return result
     bool rtn = cap.open(deviceNumber);
     if (rtn) {
-        cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
-        cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+        cap.set(cv::CAP_PROP_FRAME_WIDTH, 640); // 1920
+        cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480); // 1080
     }
     return rtn;
 } // connectToCamera()

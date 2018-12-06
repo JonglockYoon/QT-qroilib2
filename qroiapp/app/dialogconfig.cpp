@@ -39,6 +39,8 @@ DialogConfig::DialogConfig(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    theMainWindow->SetCameraPause(0, true);
+
     model2 = new QStringListModel(this);
 
     int val = gCfg.m_nCamExposure;
@@ -72,6 +74,7 @@ DialogConfig::DialogConfig(QWidget *parent) :
 
     this->setWindowTitle("Config");
 
+    theMainWindow->SetCameraPause(0, false);
 }
 
 DialogConfig::~DialogConfig()
@@ -155,6 +158,7 @@ void DialogConfig::enableAutoFocus(bool on)
             continue;
         }
 
+        theMainWindow->SetCameraPause(seq, true);
         Controller* pController = pView->myCamController[seq];
         if (pController->captureThread)
             pController->captureThread->cap.set(cv::CAP_PROP_AUTOFOCUS, on);
